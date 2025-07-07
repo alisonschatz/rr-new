@@ -182,12 +182,13 @@ export default function ResourceCard({ resource, userInventory }) {
         <Store className={`h-6 w-6 ${config.textColor}`} />
       </div>
 
-      {/* MELHOR OFERTA DISPONÍVEL */}
-      <div className="mb-6">
+      {/* INFORMAÇÕES PRINCIPAIS */}
+      <div className="space-y-4 mb-6">
+        {/* PREÇO E STATUS */}
         <div className="bg-gray-750 border border-gray-600 p-4">
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center">
             <span className="text-sm font-mono tracking-wider text-gray-400">
-              MELHOR PREÇO:
+              {isMarketActive ? 'MELHOR PREÇO:' : 'MARKETPLACE:'}
             </span>
             <div className="text-right">
               {loading ? (
@@ -199,116 +200,40 @@ export default function ResourceCard({ resource, userInventory }) {
               ) : bestPrice > 0 ? (
                 <div className="font-mono">
                   <span className="text-xl font-bold text-green-400">
-                    {bestPrice.toFixed(2)}
+                    {bestPrice.toFixed(2)} $
                   </span>
-                  <span className="text-sm text-gray-400 ml-1">$ / unidade</span>
                 </div>
               ) : (
-                <span className="text-gray-500 font-mono">-- $</span>
+                <span className="text-gray-500 font-mono">VAZIO</span>
               )}
             </div>
           </div>
-          {bestPrice > 0 && (
-            <div className="flex items-center justify-center space-x-2 mt-2 p-2 bg-green-900 border border-green-600">
-              <ShoppingCart className="h-4 w-4 text-green-400" />
-              <span className="text-xs text-green-200 font-mono tracking-wider">
-                DISPONÍVEL PARA COMPRA
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ESTATÍSTICAS DO MARKETPLACE */}
-      <div className="space-y-4 mb-6">
-        {/* PREÇO MÉDIO */}
-        <div className="bg-gray-750 border border-gray-600 p-3">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-mono tracking-wider text-gray-400">
-              PREÇO MÉDIO:
-            </span>
-            <div className={`text-lg font-bold font-mono ${
-              marketStats.averagePrice > 0 ? config.textColor : 'text-gray-500'
-            }`}>
-              {marketStats.averagePrice > 0 ? marketStats.averagePrice.toFixed(2) + ' $' : '-- $'}
-            </div>
-          </div>
         </div>
 
-        {/* RANGE DE PREÇOS */}
-        {marketStats.totalOrders > 1 && (
-          <div className="bg-gray-750 border border-gray-600 p-3">
-            <div className="text-xs font-mono tracking-wider text-gray-400 mb-2 text-center">
-              FAIXA DE PREÇOS
-            </div>
-            <div className="flex justify-between text-xs font-mono">
-              <div className="text-center">
-                <div className="text-green-400 font-bold">{marketStats.lowestPrice.toFixed(2)} $</div>
-                <div className="text-gray-500">MENOR</div>
-              </div>
-              <div className="text-center">
-                <div className="text-red-400 font-bold">{marketStats.highestPrice.toFixed(2)} $</div>
-                <div className="text-gray-500">MAIOR</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ESTATÍSTICAS DE VOLUME */}
+        {/* ESTATÍSTICAS SIMPLES */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-750 border border-gray-600 p-3">
-            <div className="text-center">
-              <div className={`text-lg font-bold font-mono ${
-                marketStats.totalOrders > 0 ? config.textColor : 'text-gray-500'
-              }`}>
-                {loading ? '...' : marketStats.totalOrders}
-              </div>
-              <div className="text-xs font-mono tracking-wider text-gray-400">
-                OFERTAS
-              </div>
+          <div className="bg-gray-750 border border-gray-600 p-3 text-center">
+            <div className={`text-lg font-bold font-mono ${
+              marketStats.totalOrders > 0 ? config.textColor : 'text-gray-500'
+            }`}>
+              {loading ? '...' : marketStats.totalOrders}
+            </div>
+            <div className="text-xs font-mono tracking-wider text-gray-400">
+              OFERTAS
             </div>
           </div>
           
-          <div className="bg-gray-750 border border-gray-600 p-3">
-            <div className="text-center">
-              <div className={`text-lg font-bold font-mono ${
-                marketStats.totalVolume > 0 ? config.textColor : 'text-gray-500'
-              }`}>
-                {loading ? '...' : marketStats.totalVolume.toLocaleString()}
-              </div>
-              <div className="text-xs font-mono tracking-wider text-gray-400">
-                ESTOQUE
-              </div>
+          <div className="bg-gray-750 border border-gray-600 p-3 text-center">
+            <div className={`text-lg font-bold font-mono ${
+              marketStats.totalVolume > 0 ? config.textColor : 'text-gray-500'
+            }`}>
+              {loading ? '...' : marketStats.totalVolume.toLocaleString()}
+            </div>
+            <div className="text-xs font-mono tracking-wider text-gray-400">
+              VOLUME
             </div>
           </div>
         </div>
-      </div>
-
-      {/* AÇÕES RÁPIDAS */}
-      <div className="space-y-3 mb-6">
-        {/* Mostrar oportunidade de compra se houver ofertas */}
-        {bestPrice > 0 && (
-          <div className="bg-green-900 border border-green-600 p-3 text-center">
-            <div className="text-xs text-green-200 font-mono tracking-wider mb-1">
-              OPORTUNIDADE DE COMPRA
-            </div>
-            <div className="text-green-100 font-mono font-bold">
-              A partir de {bestPrice.toFixed(2)} $ / unidade
-            </div>
-          </div>
-        )}
-
-        {/* Incentivo para vender */}
-        {marketStats.totalOrders === 0 && (
-          <div className="bg-blue-900 border border-blue-600 p-3 text-center">
-            <div className="text-xs text-blue-200 font-mono tracking-wider mb-1">
-              SEJA O PRIMEIRO
-            </div>
-            <div className="text-blue-100 font-mono font-bold">
-              Defina o preço do mercado!
-            </div>
-          </div>
-        )}
       </div>
 
       {/* BOTÃO MARKETPLACE */}
@@ -317,35 +242,9 @@ export default function ResourceCard({ resource, userInventory }) {
           href={`/orderbook/${resource.toLowerCase()}`}
           className={`w-full btn ${config.btnClass} text-center block font-mono font-bold tracking-wider transition-all duration-200 hover:transform hover:-translate-y-0.5`}
         >
-          {isMarketActive ? 'ENTRAR NO MARKETPLACE' : 'CRIAR PRIMEIRA OFERTA'}
+          ACESSAR MARKETPLACE
         </Link>
       </div>
-
-      {/* RESUMO RÁPIDO */}
-      <div className="mt-4 p-3 bg-gray-900 border border-gray-700">
-        <div className="text-xs text-gray-400 font-mono text-center">
-          {isMarketActive ? (
-            <div>
-              {marketStats.totalOrders} oferta{marketStats.totalOrders !== 1 ? 's' : ''} • 
-              Volume: {marketStats.totalVolume.toLocaleString()} • 
-              Média: {marketStats.averagePrice.toFixed(2)} $
-            </div>
-          ) : (
-            <div>Marketplace vazio - Seja o primeiro vendedor!</div>
-          )}
-        </div>
-      </div>
-
-      {/* DEBUG (apenas em desenvolvimento) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-2 bg-gray-900 border border-gray-700">
-          <div className="text-xs text-gray-500 font-mono">
-            <div>DEBUG: {orders.length} ordens de venda</div>
-            <div>MELHOR: {bestPrice.toFixed(2)} $ | MÉDIO: {marketStats.averagePrice.toFixed(2)} $</div>
-            <div>VOLUME: {marketStats.totalVolume} | RANGE: {marketStats.lowestPrice.toFixed(2)}-{marketStats.highestPrice.toFixed(2)} $</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
