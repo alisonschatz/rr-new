@@ -8,6 +8,37 @@ import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { X } from 'lucide-react';
 
+// Função de formatação de dinheiro estendida
+const formatMoney = (number) => {
+  if (!number || number === 0) return '0.00';
+  
+  const num = Math.abs(number);
+  
+  if (num >= 1000000000000000000) {
+    return (num / 1000000000000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkkkkk';
+  }
+  if (num >= 1000000000000000) {
+    return (num / 1000000000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkkkk';
+  }
+  if (num >= 1000000000000) {
+    return (num / 1000000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkkk';
+  }
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkk';
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkk';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(2).replace(/\.?0+$/, '') + 'kkk';
+  }
+  if (num >= 1) {
+    return (num).toFixed(2).replace(/\.?0+$/, '') + 'kk';
+  }
+  
+  return num.toFixed(2);
+};
+
 export default function OrderModal({ isOpen, onClose, resource }) {
   const { user, userData } = useAuth();
   const [orderData, setOrderData] = useState({
@@ -180,11 +211,11 @@ export default function OrderModal({ isOpen, onClose, resource }) {
           <div className="bg-gray-750 p-3 sm:p-4 border border-gray-600 space-y-2">
             <div className="flex justify-between text-xs sm:text-sm font-mono">
               <span className="text-gray-400 tracking-wider">VALOR TOTAL:</span>
-              <span className="font-bold text-green-400">{totalValue.toLocaleString()} $</span>
+              <span className="font-bold text-green-400">{formatMoney(totalValue)} $</span>
             </div>
             <div className="flex justify-between text-xs sm:text-sm font-mono">
               <span className="text-gray-400 tracking-wider">VOCÊ RECEBERÁ:</span>
-              <span className="font-bold text-green-400">{totalValue.toLocaleString()} $ (quando vendido)</span>
+              <span className="font-bold text-green-400">{formatMoney(totalValue)} $ (quando vendido)</span>
             </div>
           </div>
 

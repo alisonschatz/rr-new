@@ -11,6 +11,37 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
 
+// Função de formatação de dinheiro estendida
+const formatMoney = (number) => {
+  if (!number || number === 0) return '0';
+  
+  const num = Math.abs(number);
+  
+  if (num >= 1000000000000000000) {
+    return (num / 1000000000000000000).toFixed(1).replace(/\.?0+$/, '') + 'kkkkkkkk';
+  }
+  if (num >= 1000000000000000) {
+    return (num / 1000000000000000).toFixed(1).replace(/\.?0+$/, '') + 'kkkkkkk';
+  }
+  if (num >= 1000000000000) {
+    return (num / 1000000000000).toFixed(1).replace(/\.?0+$/, '') + 'kkkkkk';
+  }
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(1).replace(/\.?0+$/, '') + 'kkkkk';
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.?0+$/, '') + 'kkkk';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.?0+$/, '') + 'kkk';
+  }
+  if (num >= 1) {
+    return (num).toFixed(1).replace(/\.?0+$/, '') + 'kk';
+  }
+  
+  return num.toString();
+};
+
 export default function Navbar() {
   const { user, userData, logout } = useAuth();
   const router = useRouter();
@@ -29,14 +60,15 @@ export default function Navbar() {
     try {
       const userRef = doc(db, 'users', user.uid);
       const currentBalance = userData.balance || 0;
-      const newBalance = currentBalance + 1000;
+      const depositAmount = 1000000000000; // 1kkkkk (1 trilhão)
+      const newBalance = currentBalance + depositAmount;
 
       await updateDoc(userRef, {
         balance: newBalance
       });
 
       console.log(`💰 Depósito: ${currentBalance} → ${newBalance}`);
-      toast.success('1000 $ ADICIONADOS AO SALDO!');
+      toast.success('1kkkkk $ ADICIONADOS AO SALDO!');
       
     } catch (error) {
       console.error('❌ Erro no depósito:', error);
@@ -109,9 +141,9 @@ export default function Navbar() {
                 <span className="text-sm text-green-400 font-mono font-bold tracking-wider">
                   SALDO:
                 </span>
-                <div className="balance-display">
-                  <span className="text-lg font-bold font-mono">
-                    $ {(userData.balance || 0).toLocaleString()}
+                <div className="balance-display min-w-0 flex-shrink-0">
+                  <span className="text-lg font-bold font-mono truncate block max-w-[120px] lg:max-w-[200px]" title={`$ ${(userData.balance || 0).toLocaleString()}`}>
+                    $ {formatMoney(userData.balance || 0)}
                   </span>
                 </div>
               </div>
@@ -179,7 +211,7 @@ export default function Navbar() {
                   className="w-full bg-green-700 hover:bg-green-600 text-white flex items-center justify-center space-x-3 px-4 py-3 font-mono tracking-wider font-bold transition-colors"
                 >
                   <Plus className="h-5 w-5" />
-                  <span>$ {depositLoading ? 'DEPOSITANDO...' : 'DEPOSITAR 1000'}</span>
+                  <span>$ {depositLoading ? 'DEPOSITANDO...' : 'DEPOSITAR 1kkkkk'}</span>
                 </button>
               )}
 
@@ -189,8 +221,13 @@ export default function Navbar() {
                   <div className="text-xs text-gray-400 font-mono tracking-wider mb-1">
                     SALDO DISPONÍVEL
                   </div>
-                  <div className="flex items-center text-green-400 font-mono font-bold text-lg">
-                    <span>$ {(userData.balance || 0).toLocaleString()}</span>
+                  <div className="flex items-center text-green-400 font-mono font-bold">
+                    <span className="text-lg truncate" title={`$ ${(userData.balance || 0).toLocaleString()}`}>
+                      $ {formatMoney(userData.balance || 0)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 font-mono mt-1">
+                    Valor exato: $ {(userData.balance || 0).toLocaleString()}
                   </div>
                 </div>
               )}

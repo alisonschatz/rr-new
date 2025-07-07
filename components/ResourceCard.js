@@ -5,7 +5,68 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
-import { TrendingUp, ShoppingCart, Store } from 'lucide-react';
+import { TrendingUp, Store } from 'lucide-react';
+
+// Função de formatação de números grandes estendida
+const formatNumber = (number) => {
+  if (!number || number === 0) return '0';
+  
+  const num = Math.abs(number);
+  
+  if (num >= 1000000000000000000) {
+    return (num / 1000000000000000000).toFixed(1).replace('.0', '') + 'kkkkkkkk';
+  }
+  if (num >= 1000000000000000) {
+    return (num / 1000000000000000).toFixed(1).replace('.0', '') + 'kkkkkkk';
+  }
+  if (num >= 1000000000000) {
+    return (num / 1000000000000).toFixed(1).replace('.0', '') + 'kkkkkk';
+  }
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(1).replace('.0', '') + 'kkkkk';
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace('.0', '') + 'kkkk';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace('.0', '') + 'kkk';
+  }
+  if (num >= 1) {
+    return (num).toFixed(1).replace('.0', '') + 'kk';
+  }
+  
+  return num.toString();
+};
+
+const formatMoney = (number) => {
+  if (!number || number === 0) return '0.00';
+  
+  const num = Math.abs(number);
+  
+  if (num >= 1000000000000000000) {
+    return (num / 1000000000000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkkkkk';
+  }
+  if (num >= 1000000000000000) {
+    return (num / 1000000000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkkkk';
+  }
+  if (num >= 1000000000000) {
+    return (num / 1000000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkkk';
+  }
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkkk';
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'kkkk';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(2).replace(/\.?0+$/, '') + 'kkk';
+  }
+  if (num >= 1) {
+    return (num).toFixed(2).replace(/\.?0+$/, '') + 'kk';
+  }
+  
+  return num.toFixed(2);
+};
 
 const resourceConfig = {
   GOLD: { 
@@ -200,7 +261,7 @@ export default function ResourceCard({ resource, userInventory }) {
               ) : bestPrice > 0 ? (
                 <div className="font-mono">
                   <span className="text-xl font-bold text-green-400">
-                    {bestPrice.toFixed(2)} $
+                    {formatMoney(bestPrice)} $
                   </span>
                 </div>
               ) : (
@@ -227,7 +288,7 @@ export default function ResourceCard({ resource, userInventory }) {
             <div className={`text-lg font-bold font-mono ${
               marketStats.totalVolume > 0 ? config.textColor : 'text-gray-500'
             }`}>
-              {loading ? '...' : marketStats.totalVolume.toLocaleString()}
+              {loading ? '...' : formatNumber(marketStats.totalVolume)}
             </div>
             <div className="text-xs font-mono tracking-wider text-gray-400">
               VOLUME
