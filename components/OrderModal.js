@@ -127,22 +127,24 @@ export default function OrderModal({ isOpen, onClose, resource }) {
   const remainingBalance = userBalance - totalCost;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Nova Ordem de Compra - {resource}</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+      <div className="modal max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
+          <h2 className="text-xl font-bold text-gray-200 font-mono tracking-wider">
+            NOVA ORDEM DE COMPRA - {resource}
+          </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-200 transition-colors"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Preço por unidade (RRCOIN)
+            <label className="block text-sm font-bold text-gray-300 mb-2 font-mono tracking-wider">
+              PREÇO POR UNIDADE ($)
             </label>
             <input
               type="number"
@@ -152,15 +154,15 @@ export default function OrderModal({ isOpen, onClose, resource }) {
               step="0.01"
               min="0.01"
               required
-              className="input"
+              className="input font-mono"
               placeholder="0.00"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Quantidade
+            <label className="block text-sm font-bold text-gray-300 mb-2 font-mono tracking-wider">
+              QUANTIDADE
             </label>
             <input
               type="number"
@@ -169,27 +171,27 @@ export default function OrderModal({ isOpen, onClose, resource }) {
               onChange={handleChange}
               min="1"
               required
-              className="input"
+              className="input font-mono"
               placeholder="0"
               disabled={loading}
             />
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-between text-sm">
-              <span>Custo Total:</span>
-              <span className="font-semibold">{totalCost.toLocaleString()} RRCOIN</span>
+          <div className="bg-gray-750 p-4 border border-gray-600">
+            <div className="flex justify-between text-sm font-mono">
+              <span className="text-gray-400 tracking-wider">CUSTO TOTAL:</span>
+              <span className="font-bold text-gray-200">{totalCost.toLocaleString()} $</span>
             </div>
-            <div className="flex justify-between text-sm mt-1">
-              <span>Saldo Atual:</span>
-              <span className="font-semibold">{userBalance.toLocaleString()} RRCOIN</span>
+            <div className="flex justify-between text-sm mt-2 font-mono">
+              <span className="text-gray-400 tracking-wider">SALDO ATUAL:</span>
+              <span className="font-bold text-gray-200">{userBalance.toLocaleString()} $</span>
             </div>
-            <div className="flex justify-between text-sm mt-1">
-              <span>Saldo Restante:</span>
-              <span className={`font-semibold ${
-                remainingBalance >= 0 ? 'text-green-600' : 'text-red-600'
+            <div className="flex justify-between text-sm mt-2 font-mono">
+              <span className="text-gray-400 tracking-wider">SALDO RESTANTE:</span>
+              <span className={`font-bold ${
+                remainingBalance >= 0 ? 'text-green-400' : 'text-red-400'
               }`}>
-                {remainingBalance.toLocaleString()} RRCOIN
+                {remainingBalance.toLocaleString()} $
               </span>
             </div>
           </div>
@@ -199,16 +201,16 @@ export default function OrderModal({ isOpen, onClose, resource }) {
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 btn btn-secondary"
+              className="flex-1 btn btn-secondary font-mono tracking-wider"
             >
-              Cancelar
+              CANCELAR
             </button>
             <button
               type="submit"
               disabled={loading || totalCost > userBalance || totalCost <= 0}
-              className="flex-1 btn btn-primary"
+              className="flex-1 btn btn-success font-mono tracking-wider"
             >
-              {loading ? 'Criando...' : 'Criar Ordem'}
+              {loading ? 'CRIANDO...' : 'CRIAR ORDEM'}
             </button>
           </div>
         </form>

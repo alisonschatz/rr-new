@@ -4,41 +4,164 @@
 
 @layer base {
   * {
-    border-color: theme('colors.gray.200');
+    border-color: #4a4a4a;
+  }
+  
+  html {
+    background-color: #2a2a2a;
   }
   
   body {
-    background-color: theme('colors.gray.100');
-    color: theme('colors.gray.900');
+    background-color: #2a2a2a;
+    color: #e5e5e5;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+  }
+  
+  /* Garantir que a página inteira tenha o background correto */
+  #__next {
+    background-color: #2a2a2a;
+    min-height: 100vh;
   }
 }
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-colors cursor-pointer inline-flex items-center justify-center;
+    @apply px-4 py-2 font-medium transition-colors cursor-pointer inline-flex items-center justify-center border;
+    /* Remover border-radius para ficar quadrado */
+    border-radius: 0;
   }
   
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed;
+    @apply bg-gray-600 text-white hover:bg-gray-500 border-gray-500 disabled:bg-gray-700 disabled:cursor-not-allowed;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+    @apply bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600;
   }
   
   .btn-success {
-    @apply bg-green-600 text-white hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed;
+    @apply bg-green-700 text-white hover:bg-green-600 border-green-600 disabled:bg-green-800 disabled:cursor-not-allowed;
   }
   
   .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700;
+    @apply bg-red-700 text-white hover:bg-red-600 border-red-600;
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-gray-800 p-6 border border-gray-600;
+    /* Remover border-radius para ficar quadrado */
+    border-radius: 0;
+  }
+  
+  .card-resource {
+    @apply bg-gray-800 p-6 border-2 transition-colors hover:bg-gray-750;
+    /* Remover border-radius para ficar quadrado */
+    border-radius: 0;
   }
   
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    @apply w-full px-4 py-3 bg-gray-700 border border-gray-500 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-400;
+    /* Remover border-radius para ficar quadrado */
+    border-radius: 0;
+  }
+  
+  .navbar {
+    @apply bg-gray-800 border-b border-gray-600;
+  }
+  
+  .balance-display {
+    @apply bg-green-700 text-white px-4 py-2 font-bold border border-green-600;
+    border-radius: 0;
+  }
+  
+  /* Cores específicas para recursos - tons mais escuros e rústicos */
+  .resource-gold { @apply border-yellow-700 bg-gray-800 hover:border-yellow-600; }
+  .resource-oil { @apply border-gray-600 bg-gray-800 hover:border-gray-500; }
+  .resource-ore { @apply border-orange-700 bg-gray-800 hover:border-orange-600; }
+  .resource-dia { @apply border-blue-700 bg-gray-800 hover:border-blue-600; }
+  .resource-ura { @apply border-green-700 bg-gray-800 hover:border-green-600; }
+  .resource-cash { @apply border-emerald-700 bg-gray-800 hover:border-emerald-600; }
+  
+  .stat-card {
+    @apply bg-gray-800 p-4 border border-gray-600;
+    border-radius: 0;
+  }
+  
+  .orderbook-table {
+    @apply bg-gray-800 border border-gray-600;
+    border-radius: 0;
+  }
+  
+  .table-header {
+    @apply bg-gray-700 text-gray-300 text-xs font-medium uppercase tracking-wider;
+  }
+  
+  .table-row {
+    @apply bg-gray-800 hover:bg-gray-700 transition-colors border-b border-gray-600;
+  }
+  
+  /* Cores de texto */
+  .text-success { @apply text-green-400; }
+  .text-danger { @apply text-red-400; }
+  .text-warning { @apply text-yellow-400; }
+  .text-info { @apply text-blue-400; }
+  
+  /* Backgrounds */
+  .bg-success { @apply bg-green-700; }
+  .bg-danger { @apply bg-red-700; }
+  .bg-warning { @apply bg-yellow-700; }
+  .bg-info { @apply bg-blue-700; }
+  
+  /* Modal */
+  .modal {
+    @apply bg-gray-800 border border-gray-600;
+    border-radius: 0;
+  }
+  
+  /* Debug panel */
+  .debug-panel {
+    @apply bg-gray-700 border border-gray-500 p-4;
+    border-radius: 0;
+  }
+  
+  /* Customização do Tailwind para tons específicos */
+  .bg-gray-750 {
+    background-color: #3a3a3a;
+  }
+  
+  .border-gray-750 {
+    border-color: #3a3a3a;
+  }
+  
+  /* Efeitos hover mais sutis */
+  .hover-lift:hover {
+    transform: translateY(-1px);
+  }
+  
+  /* Linhas divisórias */
+  .divider {
+    @apply border-t border-gray-600 my-4;
+  }
+  
+  /* Grid personalizado */
+  .grid-rustic {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+  
+  /* Botões de recursos específicos - tons mais escuros e rústicos */
+  .btn-gold { @apply bg-yellow-800 hover:bg-yellow-700 border-yellow-700 text-yellow-100; }
+  .btn-oil { @apply bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-100; }
+  .btn-ore { @apply bg-orange-800 hover:bg-orange-700 border-orange-700 text-orange-100; }
+  .btn-dia { @apply bg-blue-800 hover:bg-blue-700 border-blue-700 text-blue-100; }
+  .btn-ura { @apply bg-green-800 hover:bg-green-700 border-green-700 text-green-100; }
+  .btn-cash { @apply bg-emerald-800 hover:bg-emerald-700 border-emerald-700 text-emerald-100; }
+  
+  /* Garantir background em todas as páginas */
+  .page-container {
+    @apply min-h-screen;
+    background-color: #2a2a2a;
   }
 }

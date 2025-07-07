@@ -9,16 +9,52 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
 import OrderModal from '@/components/OrderModal';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Plus, Trash2, TrendingUp, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, TrendingUp, RefreshCw, AlertCircle, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 const resourceConfig = {
-  gold: { name: 'Ouro', icon: '🏆', resource: 'GOLD' },
-  oil: { name: 'Petróleo', icon: '🛢️', resource: 'OIL' },
-  ore: { name: 'Minério', icon: '⛏️', resource: 'ORE' },
-  dia: { name: 'Diamante', icon: '💎', resource: 'DIA' },
-  ura: { name: 'Urânio', icon: '☢️', resource: 'URA' },
-  cash: { name: 'Dinheiro', icon: '💵', resource: 'CASH' }
+  gold: { 
+    name: 'OURO', 
+    icon: '🏆', 
+    resource: 'GOLD',
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-800'
+  },
+  oil: { 
+    name: 'PETRÓLEO', 
+    icon: '🛢️', 
+    resource: 'OIL',
+    color: 'text-gray-400',
+    bgColor: 'bg-gray-700'
+  },
+  ore: { 
+    name: 'MINÉRIO', 
+    icon: '⛏️', 
+    resource: 'ORE',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-800'
+  },
+  dia: { 
+    name: 'DIAMANTE', 
+    icon: '💎', 
+    resource: 'DIA',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-800'
+  },
+  ura: { 
+    name: 'URÂNIO', 
+    icon: '☢️', 
+    resource: 'URA',
+    color: 'text-green-600',
+    bgColor: 'bg-green-800'
+  },
+  cash: { 
+    name: 'DINHEIRO', 
+    icon: '💵', 
+    resource: 'CASH',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-800'
+  }
 };
 
 export default function OrderbookPage({ params }) {
@@ -26,63 +62,39 @@ export default function OrderbookPage({ params }) {
   const [orders, setOrders] = useState([]);
   const [userOrders, setUserOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({
-    totalOrders: 0,
-    userOrdersCount: 0,
-    errors: [],
-    lastUpdate: null
+  const [stats, setStats] = useState({
+    averagePrice: 0,
+    highestPrice: 0,
+    lowestPrice: 0,
+    totalVolume: 0,
+    totalOrders: 0
   });
 
   const resourceKey = params.resource;
   const config = resourceConfig[resourceKey];
 
-  // Função para buscar dados manualmente (para debug)
-  const fetchOrdersManually = async () => {
-    if (!config) return;
-    
-    try {
-      console.log('🔍 Buscando ordens manualmente para:', config.resource);
-      
-      const q = query(
-        collection(db, 'orders'),
-        where('resource', '==', config.resource)
-      );
-      
-      const snapshot = await getDocs(q);
-      console.log('📊 Snapshot manual recebido:', snapshot.size, 'documentos');
-      
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        console.log('📄 Ordem encontrada:', {
-          id: doc.id,
-          resource: data.resource,
-          price: data.price,
-          quantity: data.quantity,
-          userId: data.userId,
-          timestamp: data.timestamp
-        });
-      });
-      
-      return snapshot.size;
-    } catch (error) {
-      console.error('❌ Erro na busca manual:', error);
-      return 0;
-    }
-  };
-
+  // Verificar se o recurso é válido
   if (!config) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen">
           <Navbar />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900">Recurso não encontrado</h1>
-              <p className="text-red-600">Recurso: {resourceKey}</p>
-              <p className="text-gray-600">Recursos válidos: gold, oil, ore, dia, ura, cash</p>
-              <Link href="/dashboard" className="btn btn-primary mt-4">
-                Voltar ao Dashboard
+            <div className="card text-center">
+              <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-gray-200 font-mono tracking-wider mb-2">
+                RECURSO NÃO ENCONTRADO
+              </h1>
+              <p className="text-gray-400 font-mono mb-4">
+                O recurso "{resourceKey}" não existe no sistema.
+              </p>
+              <p className="text-gray-500 font-mono text-sm mb-6">
+                RECURSOS VÁLIDOS: gold, oil, ore, dia, ura, cash
+              </p>
+              <Link href="/dashboard" className="btn btn-primary font-mono tracking-wider">
+                VOLTAR AO DASHBOARD
               </Link>
             </div>
           </div>
@@ -91,42 +103,51 @@ export default function OrderbookPage({ params }) {
     );
   }
 
+  // Buscar dados manualmente para debug
+  const fetchOrdersManually = async () => {
+    setRefreshing(true);
+    try {
+      console.log('🔄 Buscando ordens manualmente para:', config.resource);
+      
+      const q = query(
+        collection(db, 'orders'),
+        where('resource', '==', config.resource)
+      );
+      
+      const snapshot = await getDocs(q);
+      console.log('📊 Ordens encontradas manualmente:', snapshot.size);
+      
+      setTimeout(() => setRefreshing(false), 1000);
+    } catch (error) {
+      console.error('❌ Erro na busca manual:', error);
+      setRefreshing(false);
+    }
+  };
+
+  // Configurar listeners
   useEffect(() => {
     console.log('🚀 Inicializando orderbook para:', config.resource);
-    console.log('👤 Usuário logado:', user?.uid);
     
     let unsubscribeAll = () => {};
     let unsubscribeUser = () => {};
     
-    // Buscar TODAS as ordens do recurso
     try {
+      // Listener para todas as ordens
       const allOrdersQuery = query(
         collection(db, 'orders'),
         where('resource', '==', config.resource)
       );
 
-      console.log('📡 Configurando listener para todas as ordens...');
-      
       unsubscribeAll = onSnapshot(
         allOrdersQuery,
         (snapshot) => {
-          console.log('📦 Snapshot recebido - Total de docs:', snapshot.size);
+          console.log('📦 Ordens recebidas:', snapshot.size);
           
           const ordersList = [];
-          const errors = [];
           
           snapshot.forEach((doc) => {
-            try {
-              const data = doc.data();
-              console.log('📄 Processando ordem:', doc.id, data);
-              
-              // Validar dados da ordem
-              if (!data.resource || !data.price || !data.quantity || !data.userId) {
-                console.warn('⚠️ Ordem com dados incompletos:', doc.id, data);
-                errors.push(`Ordem ${doc.id} tem dados incompletos`);
-                return;
-              }
-              
+            const data = doc.data();
+            if (data.resource && data.price && data.quantity && data.userId) {
               ordersList.push({
                 id: doc.id,
                 resource: data.resource,
@@ -135,9 +156,6 @@ export default function OrderbookPage({ params }) {
                 userId: data.userId,
                 timestamp: data.timestamp
               });
-            } catch (err) {
-              console.error('❌ Erro ao processar ordem:', doc.id, err);
-              errors.push(`Erro na ordem ${doc.id}: ${err.message}`);
             }
           });
 
@@ -145,33 +163,42 @@ export default function OrderbookPage({ params }) {
           ordersList.sort((a, b) => b.price - a.price);
           
           console.log('✅ Ordens processadas:', ordersList.length);
-          console.log('📊 Lista de ordens:', ordersList);
-          
           setOrders(ordersList);
-          setDebugInfo(prev => ({
-            ...prev,
-            totalOrders: ordersList.length,
-            errors: errors,
-            lastUpdate: new Date().toLocaleTimeString()
-          }));
+          
+          // Calcular estatísticas
+          if (ordersList.length > 0) {
+            const prices = ordersList.map(order => order.price);
+            const totalValue = ordersList.reduce((sum, order) => sum + (order.price * order.quantity), 0);
+            const totalQty = ordersList.reduce((sum, order) => sum + order.quantity, 0);
+
+            setStats({
+              averagePrice: totalQty > 0 ? totalValue / totalQty : 0,
+              highestPrice: Math.max(...prices),
+              lowestPrice: Math.min(...prices.filter(p => p > 0)),
+              totalVolume: totalQty,
+              totalOrders: ordersList.length
+            });
+          } else {
+            setStats({
+              averagePrice: 0,
+              highestPrice: 0,
+              lowestPrice: 0,
+              totalVolume: 0,
+              totalOrders: 0
+            });
+          }
           
           setLoading(false);
         },
         (error) => {
           console.error('❌ Erro no listener de ordens:', error);
-          setDebugInfo(prev => ({
-            ...prev,
-            errors: [...prev.errors, `Erro no listener: ${error.message}`]
-          }));
           setLoading(false);
-          toast.error('Erro ao carregar orderbook: ' + error.message);
+          toast.error('ERRO AO CARREGAR ORDERBOOK');
         }
       );
 
-      // Buscar ordens do usuário logado
+      // Listener para ordens do usuário
       if (user) {
-        console.log('👤 Configurando listener para ordens do usuário...');
-        
         const userOrdersQuery = query(
           collection(db, 'orders'),
           where('resource', '==', config.resource),
@@ -181,20 +208,14 @@ export default function OrderbookPage({ params }) {
         unsubscribeUser = onSnapshot(
           userOrdersQuery,
           (snapshot) => {
-            console.log('👤 Ordens do usuário recebidas:', snapshot.size);
-            
-            const userOrdersList = [];
-            
-            snapshot.forEach((doc) => {
+            const userOrdersList = snapshot.docs.map(doc => {
               const data = doc.data();
-              console.log('👤 Ordem do usuário:', doc.id, data);
-              
-              userOrdersList.push({
+              return {
                 id: doc.id,
                 ...data,
                 price: Number(data.price) || 0,
                 quantity: Number(data.quantity) || 0
-              });
+              };
             });
 
             // Ordenar por timestamp (mais recente primeiro)
@@ -204,263 +225,249 @@ export default function OrderbookPage({ params }) {
               return timeB - timeA;
             });
             
-            console.log('✅ Suas ordens processadas:', userOrdersList.length);
+            console.log('👤 Suas ordens:', userOrdersList.length);
             setUserOrders(userOrdersList);
-            setDebugInfo(prev => ({
-              ...prev,
-              userOrdersCount: userOrdersList.length
-            }));
           },
           (error) => {
-            console.error('❌ Erro no listener de ordens do usuário:', error);
-            toast.error('Erro ao carregar suas ordens: ' + error.message);
+            console.error('❌ Erro nas ordens do usuário:', error);
           }
         );
       }
     } catch (error) {
       console.error('❌ Erro ao configurar listeners:', error);
       setLoading(false);
-      toast.error('Erro ao configurar listeners: ' + error.message);
     }
 
-    // Busca manual inicial para debug
+    // Busca manual inicial
     fetchOrdersManually();
 
     return () => {
-      console.log('🧹 Limpando listeners...');
       unsubscribeAll();
       unsubscribeUser();
     };
   }, [config.resource, user]);
 
+  // Cancelar ordem
   const handleCancelOrder = async (orderId, price, quantity) => {
     if (!user || !userData) {
-      toast.error('Usuário não autenticado');
+      toast.error('USUÁRIO NÃO AUTENTICADO');
       return;
     }
 
     try {
       console.log('🗑️ Cancelando ordem:', orderId);
       
-      // Deletar a ordem
       await deleteDoc(doc(db, 'orders', orderId));
 
-      // Devolver o saldo ao usuário
       const refundAmount = price * quantity;
       const userRef = doc(db, 'users', user.uid);
       await updateDoc(userRef, {
         balance: userData.balance + refundAmount
       });
 
-      toast.success(`Ordem cancelada! ${refundAmount.toFixed(2)} RRCOIN devolvidos`);
+      toast.success(`ORDEM CANCELADA! ${refundAmount.toFixed(2)} $ DEVOLVIDOS`);
     } catch (error) {
       console.error('❌ Erro ao cancelar ordem:', error);
-      toast.error('Erro ao cancelar ordem: ' + error.message);
+      toast.error('ERRO AO CANCELAR ORDEM');
     }
   };
 
-  const handleRefresh = () => {
-    console.log('🔄 Refresh manual solicitado');
-    setLoading(true);
-    fetchOrdersManually();
-    setTimeout(() => setLoading(false), 2000);
-  };
-
-  // Calcular estatísticas
-  const stats = {
-    averagePrice: 0,
-    highestPrice: 0,
-    lowestPrice: 0,
-    totalVolume: 0
-  };
-
-  if (orders.length > 0) {
-    const prices = orders.map(order => order.price);
-    const totalValue = orders.reduce((sum, order) => sum + (order.price * order.quantity), 0);
-    const totalQty = orders.reduce((sum, order) => sum + order.quantity, 0);
-
-    stats.averagePrice = totalQty > 0 ? totalValue / totalQty : 0;
-    stats.highestPrice = Math.max(...prices);
-    stats.lowestPrice = Math.min(...prices.filter(p => p > 0));
-    stats.totalVolume = totalQty;
-  }
-
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Navbar />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard" className="btn btn-secondary">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Link>
-              <div className="flex items-center space-x-3">
-                <span className="text-4xl">{config.icon}</span>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{config.name}</h1>
-                  <p className="text-gray-600">Orderbook - {config.resource}</p>
+          {/* CABEÇALHO DO RECURSO */}
+          <div className="mb-8">
+            <div className="card">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-6 lg:space-y-0">
+                <div className="flex items-center space-x-6">
+                  <Link href="/dashboard" className="btn btn-secondary font-mono tracking-wider">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    VOLTAR
+                  </Link>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-5xl">{config.icon}</span>
+                    <div>
+                      <h1 className={`text-4xl font-bold font-mono tracking-wider ${config.color}`}>
+                        {config.name}
+                      </h1>
+                      <p className="text-gray-400 font-mono tracking-wider text-lg">
+                        ORDERBOOK - {config.resource}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={fetchOrdersManually}
+                    disabled={refreshing}
+                    className="btn btn-secondary flex items-center space-x-2 font-mono tracking-wider"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    <span>ATUALIZAR</span>
+                  </button>
+                  <button
+                    onClick={() => setShowOrderModal(true)}
+                    className={`btn font-mono tracking-wider flex items-center space-x-2 ${config.bgColor} text-white`}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>NOVA ORDEM</span>
+                  </button>
                 </div>
               </div>
             </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleRefresh}
-                className="btn btn-secondary flex items-center space-x-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span>Atualizar</span>
-              </button>
-              <button
-                onClick={() => setShowOrderModal(true)}
-                className="btn btn-primary flex items-center space-x-2"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Nova Ordem</span>
-              </button>
+          </div>
+
+          {/* STATUS DO SISTEMA */}
+          <div className="mb-8">
+            <div className="card bg-gray-750 border-gray-600">
+              <div className="flex items-center space-x-3 mb-4">
+                <AlertCircle className="h-5 w-5 text-blue-500" />
+                <h3 className="font-bold text-gray-200 font-mono tracking-wider">STATUS DO MERCADO</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-mono">
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 tracking-wider">TOTAL ORDENS</div>
+                  <div className={`text-lg font-bold ${config.color}`}>{stats.totalOrders}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 tracking-wider">VOLUME TOTAL</div>
+                  <div className={`text-lg font-bold ${config.color}`}>{stats.totalVolume.toLocaleString()}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 tracking-wider">SUAS ORDENS</div>
+                  <div className={`text-lg font-bold ${config.color}`}>{userOrders.length}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 tracking-wider">USUÁRIO ID</div>
+                  <div className="text-lg font-bold text-gray-400">
+                    {user?.uid ? user.uid.substring(0, 8) + '...' : 'N/A'}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Debug Panel */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <AlertCircle className="h-5 w-5 text-blue-600" />
-              <h3 className="font-bold text-blue-800">Status do Sistema</h3>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="font-medium">Total de Ordens:</span>
-                <span className="ml-2 text-blue-700 font-bold">{debugInfo.totalOrders}</span>
-              </div>
-              <div>
-                <span className="font-medium">Suas Ordens:</span>
-                <span className="ml-2 text-blue-700 font-bold">{debugInfo.userOrdersCount}</span>
-              </div>
-              <div>
-                <span className="font-medium">Usuário:</span>
-                <span className="ml-2 text-blue-700 font-mono text-xs">
-                  {user?.uid ? user.uid.substring(0, 8) + '...' : 'N/A'}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium">Última Atualização:</span>
-                <span className="ml-2 text-blue-700">{debugInfo.lastUpdate || 'N/A'}</span>
-              </div>
-            </div>
-            {debugInfo.errors.length > 0 && (
-              <div className="mt-2">
-                <span className="font-medium text-red-600">Erros:</span>
-                <ul className="list-disc list-inside text-red-600 text-xs">
-                  {debugInfo.errors.map((error, idx) => (
-                    <li key={idx}>{error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Estatísticas */}
+          {/* ESTATÍSTICAS DE PREÇO */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="card">
-              <div className="flex items-center justify-between">
+            <div className="stat-card">
+              <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Preço Médio</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {stats.averagePrice.toFixed(2)} RRCOIN
+                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">PREÇO MÉDIO</p>
+                  <p className={`text-2xl font-bold font-mono ${config.color}`}>
+                    {stats.averagePrice.toFixed(2)} $
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-blue-600" />
+                <BarChart3 className={`h-8 w-8 ${config.color}`} />
               </div>
             </div>
             
-            <div className="card">
-              <div className="flex items-center justify-between">
+            <div className="stat-card">
+              <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Maior Preço</p>
-                  <p className="text-xl font-bold text-green-600">
-                    {stats.highestPrice.toFixed(2)} RRCOIN
+                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MAIOR PREÇO</p>
+                  <p className="text-2xl font-bold text-green-400 font-mono">
+                    {stats.highestPrice.toFixed(2)} $
                   </p>
                 </div>
-                <div className="text-2xl text-green-600">📈</div>
+                <div className="text-2xl text-green-400">📈</div>
               </div>
             </div>
             
-            <div className="card">
-              <div className="flex items-center justify-between">
+            <div className="stat-card">
+              <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Menor Preço</p>
-                  <p className="text-xl font-bold text-red-600">
-                    {(stats.lowestPrice || 0).toFixed(2)} RRCOIN
+                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MENOR PREÇO</p>
+                  <p className="text-2xl font-bold text-red-400 font-mono">
+                    {(stats.lowestPrice || 0).toFixed(2)} $
                   </p>
                 </div>
-                <div className="text-2xl text-red-600">📉</div>
+                <div className="text-2xl text-red-400">📉</div>
               </div>
             </div>
             
-            <div className="card">
-              <div className="flex items-center justify-between">
+            <div className="stat-card">
+              <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Volume Total</p>
-                  <p className="text-xl font-bold text-gray-900">{stats.totalVolume}</p>
+                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">VOLUME TOTAL</p>
+                  <p className={`text-2xl font-bold font-mono ${config.color}`}>
+                    {stats.totalVolume.toLocaleString()}
+                  </p>
                 </div>
                 <div className="text-2xl">📊</div>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Orderbook - Todas as Ordens */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            {/* ORDERBOOK PRINCIPAL */}
             <div className="card">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Orderbook ({orders.length} ordens)
-              </h2>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-600">
+                <h2 className="text-2xl font-bold text-gray-200 font-mono tracking-wider">
+                  ORDERBOOK
+                </h2>
+                <div className="text-sm text-gray-400 font-mono tracking-wider">
+                  {orders.length} ORDEM{orders.length !== 1 ? 'S' : ''}
+                </div>
+              </div>
               
               {loading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2">Carregando ordens...</span>
+                <div className="flex justify-center py-12">
+                  <div className="flex items-center space-x-4 font-mono text-gray-400">
+                    <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
+                    <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
+                    <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
+                    <span className="tracking-wider">CARREGANDO ORDENS...</span>
+                  </div>
                 </div>
               ) : orders.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <div className="orderbook-table overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="table-header">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Preço
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                          PREÇO
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Quantidade
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                          QUANTIDADE
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Total
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                          TOTAL
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Trader
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                          TRADER
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-600">
                       {orders.map(order => (
-                        <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                            {order.price.toFixed(2)} RRCOIN
+                        <tr key={order.id} className="table-row">
+                          <td className="px-4 py-3">
+                            <div className="font-bold text-gray-200 font-mono">
+                              {order.price.toFixed(2)} $
+                            </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {order.quantity}
+                          <td className="px-4 py-3">
+                            <div className="text-gray-200 font-mono">
+                              {order.quantity.toLocaleString()}
+                            </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {(order.price * order.quantity).toFixed(2)} RRCOIN
+                          <td className="px-4 py-3">
+                            <div className="font-bold text-green-400 font-mono">
+                              {(order.price * order.quantity).toFixed(2)} $
+                            </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-500 font-mono">
-                            {order.userId.substring(0, 8)}...
-                            {order.userId === user?.uid && (
-                              <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                                Você
-                              </span>
-                            )}
+                          <td className="px-4 py-3">
+                            <div className="text-gray-400 font-mono text-sm">
+                              {order.userId.substring(0, 8)}...
+                              {order.userId === user?.uid && (
+                                <span className={`ml-2 px-2 py-1 text-xs font-bold tracking-wider ${config.bgColor} text-white`}>
+                                  VOCÊ
+                                </span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -468,77 +475,95 @@ export default function OrderbookPage({ params }) {
                   </table>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">Nenhuma ordem encontrada para {config.resource}</p>
+                <div className="text-center py-12">
+                  <TrendingUp className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
+                    ORDERBOOK VAZIO
+                  </h3>
+                  <p className="text-gray-500 font-mono tracking-wider mb-6">
+                    SEJA O PRIMEIRO A CRIAR UMA ORDEM PARA {config.resource}
+                  </p>
                   <button
                     onClick={() => setShowOrderModal(true)}
-                    className="btn btn-primary"
+                    className={`btn ${config.bgColor} text-white font-mono tracking-wider`}
                   >
-                    Criar primeira ordem
+                    CRIAR PRIMEIRA ORDEM
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Minhas Ordens */}
+            {/* SUAS ORDENS */}
             <div className="card">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Minhas Ordens ({userOrders.length})
-              </h2>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-600">
+                <h2 className="text-2xl font-bold text-gray-200 font-mono tracking-wider">
+                  SUAS ORDENS
+                </h2>
+                <div className="text-sm text-gray-400 font-mono tracking-wider">
+                  {userOrders.length} ORDEM{userOrders.length !== 1 ? 'S' : ''}
+                </div>
+              </div>
               
               {userOrders.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {userOrders.map(order => (
-                    <div key={order.id} className="border border-gray-200 rounded-lg p-4">
+                    <div key={order.id} className="bg-gray-750 border border-gray-600 p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">Preço:</span>
-                            <span>{order.price.toFixed(2)} RRCOIN</span>
+                          <div className="grid grid-cols-2 gap-4 text-sm font-mono">
+                            <div>
+                              <span className="text-gray-400 tracking-wider">PREÇO:</span>
+                              <div className="font-bold text-gray-200">{order.price.toFixed(2)} $</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 tracking-wider">QUANTIDADE:</span>
+                              <div className="font-bold text-gray-200">{order.quantity}</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 tracking-wider">TOTAL:</span>
+                              <div className="font-bold text-green-400">
+                                {(order.price * order.quantity).toFixed(2)} $
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 tracking-wider">DATA:</span>
+                              <div className="text-gray-400">
+                                {order.timestamp?.seconds 
+                                  ? new Date(order.timestamp.seconds * 1000).toLocaleDateString('pt-BR')
+                                  : 'N/A'
+                                }
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">Quantidade:</span>
-                            <span>{order.quantity}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">Total:</span>
-                            <span className="font-semibold">
-                              {(order.price * order.quantity).toFixed(2)} RRCOIN
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>Data:</span>
-                            <span>
-                              {order.timestamp?.seconds 
-                                ? new Date(order.timestamp.seconds * 1000).toLocaleDateString()
-                                : 'Data não disponível'
-                              }
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs text-gray-500">
-                            <span>ID:</span>
-                            <span className="font-mono">{order.id}</span>
+                          <div className="mt-2 text-xs text-gray-500 font-mono">
+                            ID: {order.id}
                           </div>
                         </div>
                         <button
                           onClick={() => handleCancelOrder(order.id, order.price, order.quantity)}
-                          className="ml-3 btn-danger btn text-xs flex items-center space-x-1"
+                          className="ml-4 btn btn-danger text-sm flex items-center space-x-1 font-mono tracking-wider"
                         >
                           <Trash2 className="h-3 w-3" />
-                          <span>Cancelar</span>
+                          <span>CANCELAR</span>
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">Você não tem ordens ativas para {config.resource}</p>
+                <div className="text-center py-12">
+                  <TrendingUp className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
+                    NENHUMA ORDEM SUA
+                  </h3>
+                  <p className="text-gray-500 font-mono tracking-wider mb-6">
+                    VOCÊ NÃO TEM ORDENS ATIVAS PARA {config.resource}
+                  </p>
                   <button
                     onClick={() => setShowOrderModal(true)}
-                    className="btn btn-primary"
+                    className={`btn ${config.bgColor} text-white font-mono tracking-wider`}
                   >
-                    Criar primeira ordem
+                    CRIAR ORDEM
                   </button>
                 </div>
               )}
@@ -546,7 +571,7 @@ export default function OrderbookPage({ params }) {
           </div>
         </div>
 
-        {/* Modal de Nova Ordem */}
+        {/* MODAL DE NOVA ORDEM */}
         <OrderModal
           isOpen={showOrderModal}
           onClose={() => setShowOrderModal(false)}
