@@ -1,4 +1,4 @@
-// components/Navbar.js
+// components/Navbar.js - VERSÃO ATUALIZADA COM HISTÓRICO
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { LogOut, DollarSign, Menu, X, Plus } from 'lucide-react';
+import { LogOut, DollarSign, Menu, X, Plus, Receipt } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
@@ -123,6 +123,17 @@ export default function Navbar() {
           {/* MENU DESKTOP */}
           <div className="hidden md:flex items-center space-x-4">
             
+            {/* BOTÃO HISTÓRICO */}
+            {userData && (
+              <Link
+                href="/history"
+                className="btn btn-secondary flex items-center space-x-2 font-mono tracking-wider text-sm px-4 py-2"
+              >
+                <Receipt className="h-4 w-4" />
+                <span>HISTÓRICO</span>
+              </Link>
+            )}
+            
             {/* BOTÃO DEPÓSITO */}
             {userData && (
               <button
@@ -202,6 +213,18 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-600 bg-gray-800">
             <div className="px-2 py-4 space-y-3">
+              
+              {/* HISTÓRICO MOBILE */}
+              {userData && (
+                <Link
+                  href="/history"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 flex items-center justify-center space-x-3 px-4 py-3 font-mono tracking-wider font-bold transition-colors"
+                >
+                  <Receipt className="h-5 w-5" />
+                  <span>VER HISTÓRICO DE TRANSAÇÕES</span>
+                </Link>
+              )}
               
               {/* DEPÓSITO MOBILE */}
               {userData && (

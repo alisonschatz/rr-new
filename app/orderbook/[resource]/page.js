@@ -1,4 +1,4 @@
-// app/orderbook/[resource]/page.js - VERSÃO COMPLETA ATUALIZADA
+// app/orderbook/[resource]/page.js - REESCRITO DO ZERO
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft, Plus, Trash2, TrendingUp, RefreshCw, AlertCircle, ShoppingCart, X } from 'lucide-react';
 import Link from 'next/link';
 
-// Formatação de números estendida
+// Formatação de números
 const formatNumber = (number) => {
   if (!number || number === 0) return '0';
   const num = Math.abs(number);
@@ -41,22 +41,60 @@ const formatMoney = (number) => {
 
 // Configuração dos recursos
 const RESOURCES = {
-  gold: { name: 'OURO', icon: '🏆', resource: 'GOLD', color: 'text-yellow-600', bgColor: 'bg-yellow-800' },
-  oil: { name: 'PETRÓLEO', icon: '🛢️', resource: 'OIL', color: 'text-gray-400', bgColor: 'bg-gray-700' },
-  ore: { name: 'MINÉRIO', icon: '⛏️', resource: 'ORE', color: 'text-orange-600', bgColor: 'bg-orange-800' },
-  dia: { name: 'DIAMANTE', icon: '💎', resource: 'DIA', color: 'text-blue-600', bgColor: 'bg-blue-800' },
-  ura: { name: 'URÂNIO', icon: '☢️', resource: 'URA', color: 'text-green-600', bgColor: 'bg-green-800' },
-  cash: { name: 'DINHEIRO', icon: '💵', resource: 'CASH', color: 'text-emerald-600', bgColor: 'bg-emerald-800' }
+  gold: { 
+    name: 'OURO', 
+    icon: '🏆', 
+    resource: 'GOLD', 
+    color: 'text-yellow-600', 
+    bgColor: 'bg-yellow-800' 
+  },
+  oil: { 
+    name: 'PETRÓLEO', 
+    icon: '🛢️', 
+    resource: 'OIL', 
+    color: 'text-gray-400', 
+    bgColor: 'bg-gray-700' 
+  },
+  ore: { 
+    name: 'MINÉRIO', 
+    icon: '⛏️', 
+    resource: 'ORE', 
+    color: 'text-orange-600', 
+    bgColor: 'bg-orange-800' 
+  },
+  dia: { 
+    name: 'DIAMANTE', 
+    icon: '💎', 
+    resource: 'DIA', 
+    color: 'text-blue-600', 
+    bgColor: 'bg-blue-800' 
+  },
+  ura: { 
+    name: 'URÂNIO', 
+    icon: '☢️', 
+    resource: 'URA', 
+    color: 'text-green-600', 
+    bgColor: 'bg-green-800' 
+  },
+  cash: { 
+    name: 'DINHEIRO', 
+    icon: '💵', 
+    resource: 'CASH', 
+    color: 'text-emerald-600', 
+    bgColor: 'bg-emerald-800' 
+  }
 };
 
-// Modal de Compra Melhorado
+// Modal de Compra
 function BuyModal({ isOpen, onClose, order, resource }) {
   const { user, userData } = useAuth();
   const [quantity, setQuantity] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const maxQuantity = order?.quantity || 0;
-  const pricePerUnit = order?.price || 0;
+  if (!isOpen || !order) return null;
+
+  const maxQuantity = order.quantity || 0;
+  const pricePerUnit = order.price || 0;
   const requestedQty = parseInt(quantity) || 0;
   const totalCost = requestedQty * pricePerUnit;
   const maxAffordable = Math.floor((userData?.balance || 0) / pricePerUnit);
@@ -127,18 +165,16 @@ function BuyModal({ isOpen, onClose, order, resource }) {
       const remainingQuantity = maxQuantity - requestedQty;
       
       if (remainingQuantity > 0) {
-        // Atualizar quantidade da ordem
         const orderRef = doc(db, 'orders', order.id);
         await updateDoc(orderRef, {
           quantity: remainingQuantity
         });
       } else {
-        // Remover ordem completamente
         await deleteDoc(doc(db, 'orders', order.id));
       }
 
-      // 4. Registrar transação
-      await addDoc(collection(db, 'transactions'), {
+      // 4. Registrar transação para sistema de recibos
+      const transactionRef = await addDoc(collection(db, 'transactions'), {
         buyerId: user.uid,
         sellerId: order.userId,
         resource,
@@ -149,18 +185,45 @@ function BuyModal({ isOpen, onClose, order, resource }) {
         type: 'purchase'
       });
 
-      toast.success(`COMPRA REALIZADA! ${formatNumber(requestedQty)} ${resource} por ${formatMoney(totalCost)} $`);
+      console.log('✅ Transação registrada com ID:', transactionRef.id);
+
+      toast.success('COMPRA REALIZADA! ' + formatNumber(requestedQty) + ' ' + resource + ' por ' + formatMoney(totalCost) + ' $');
+      
+      // Oferecer ver recibo
+      setTimeout(() => {
+        toast((t) => (
+          <div className="flex flex-col space-y-2">
+            <span>Compra registrada! Ver recibo?</span>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => {
+                  window.open('/receipt/' + transactionRef.id, '_blank');
+                  toast.dismiss(t.id);
+                }}
+                className="px-3 py-1 bg-blue-600 text-white text-sm font-mono"
+              >
+                VER RECIBO
+              </button>
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="px-3 py-1 bg-gray-600 text-white text-sm font-mono"
+              >
+                FECHAR
+              </button>
+            </div>
+          </div>
+        ), { duration: 10000 });
+      }, 2000);
+
       onClose();
 
     } catch (error) {
       console.error('❌ Erro na compra:', error);
-      toast.error(`ERRO: ${error.message}`);
+      toast.error('ERRO: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
-
-  if (!isOpen || !order) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
@@ -262,9 +325,7 @@ function BuyModal({ isOpen, onClose, order, resource }) {
               </div>
               <div className="flex justify-between text-sm font-mono">
                 <span className="text-gray-400">SEU SALDO:</span>
-                <span className={`font-bold ${
-                  (userData?.balance || 0) >= totalCost ? 'text-green-400' : 'text-red-400'
-                }`}>
+                <span className={userData?.balance >= totalCost ? 'font-bold text-green-400' : 'font-bold text-red-400'}>
                   {formatMoney(userData?.balance || 0)} $
                 </span>
               </div>
@@ -326,7 +387,7 @@ export default function OrderbookPage({ params }) {
                 RECURSO NÃO ENCONTRADO
               </h1>
               <p className="text-gray-400 font-mono mb-4">
-                O recurso "{resourceKey}" não existe no sistema.
+                O recurso {resourceKey} não existe no sistema.
               </p>
               <Link href="/dashboard" className="btn btn-primary font-mono tracking-wider">
                 VOLTAR AO DASHBOARD
@@ -505,7 +566,7 @@ export default function OrderbookPage({ params }) {
                   <div className="flex items-center space-x-4">
                     <span className="text-3xl sm:text-5xl">{config.icon}</span>
                     <div>
-                      <h1 className={`text-2xl sm:text-4xl font-bold font-mono tracking-wider ${config.color}`}>
+                      <h1 className={'text-2xl sm:text-4xl font-bold font-mono tracking-wider ' + config.color}>
                         {config.name}
                       </h1>
                       <p className="text-gray-400 font-mono tracking-wider text-sm sm:text-lg">
@@ -524,7 +585,7 @@ export default function OrderbookPage({ params }) {
                   </button>
                   <button
                     onClick={() => setShowOrderModal(true)}
-                    className={`btn font-mono tracking-wider flex items-center justify-center space-x-2 text-sm ${config.bgColor} text-white`}
+                    className={'btn font-mono tracking-wider flex items-center justify-center space-x-2 text-sm text-white ' + config.bgColor}
                   >
                     <Plus className="h-4 w-4" />
                     <span>VENDER {config.resource}</span>
@@ -540,11 +601,11 @@ export default function OrderbookPage({ params }) {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
                 <div className="text-center">
                   <div className="text-xs text-gray-400 tracking-wider">OFERTAS</div>
-                  <div className={`text-lg font-bold ${config.color}`}>{stats.totalOrders}</div>
+                  <div className={'text-lg font-bold ' + config.color}>{stats.totalOrders}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-400 tracking-wider">VOLUME</div>
-                  <div className={`text-lg font-bold ${config.color}`}>{formatNumber(stats.totalVolume)}</div>
+                  <div className={'text-lg font-bold ' + config.color}>{formatNumber(stats.totalVolume)}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-400 tracking-wider">MELHOR PREÇO</div>
@@ -569,7 +630,7 @@ export default function OrderbookPage({ params }) {
                 <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">
                   PREÇO MÉDIO
                 </p>
-                <p className={`text-lg sm:text-2xl font-bold font-mono ${config.color}`}>
+                <p className={'text-lg sm:text-2xl font-bold font-mono ' + config.color}>
                   {formatMoney(stats.averagePrice)} $
                 </p>
               </div>
@@ -602,7 +663,7 @@ export default function OrderbookPage({ params }) {
                 <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">
                   VOLUME TOTAL
                 </p>
-                <p className={`text-lg sm:text-2xl font-bold font-mono ${config.color}`}>
+                <p className={'text-lg sm:text-2xl font-bold font-mono ' + config.color}>
                   {formatNumber(stats.totalVolume)}
                 </p>
               </div>
@@ -639,12 +700,6 @@ export default function OrderbookPage({ params }) {
                     <table className="min-w-full">
                       <thead className="table-header">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                            PREÇO
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                            QUANTIDADE
-                          </th>
                           <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
                             TOTAL
                           </th>
@@ -849,7 +904,7 @@ export default function OrderbookPage({ params }) {
           resource={config.resource}
         />
 
-        {/* MODAL DE COMPRA */}
+        {/* MODAL DE COMPRA COM SISTEMA DE RECIBOS */}
         <BuyModal
           isOpen={showBuyModal}
           onClose={() => {
