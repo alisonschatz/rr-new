@@ -277,40 +277,40 @@ export default function OrderbookPage({ params }) {
       <div className="min-h-screen">
         <Navbar />
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
           {/* CABEÇALHO DO RECURSO */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="card">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-6 lg:space-y-0">
-                <div className="flex items-center space-x-6">
-                  <Link href="/dashboard" className="btn btn-secondary font-mono tracking-wider">
+              <div className="flex flex-col space-y-4 sm:space-y-6 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                  <Link href="/dashboard" className="btn btn-secondary font-mono tracking-wider text-sm">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     VOLTAR
                   </Link>
                   <div className="flex items-center space-x-4">
-                    <span className="text-5xl">{config.icon}</span>
+                    <span className="text-3xl sm:text-5xl">{config.icon}</span>
                     <div>
-                      <h1 className={`text-4xl font-bold font-mono tracking-wider ${config.color}`}>
+                      <h1 className={`text-2xl sm:text-4xl font-bold font-mono tracking-wider ${config.color}`}>
                         {config.name}
                       </h1>
-                      <p className="text-gray-400 font-mono tracking-wider text-lg">
+                      <p className="text-gray-400 font-mono tracking-wider text-sm sm:text-lg">
                         ORDERBOOK - {config.resource}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="flex space-x-4">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                   <button
                     onClick={fetchOrdersManually}
                     disabled={refreshing}
-                    className="btn btn-secondary flex items-center space-x-2 font-mono tracking-wider"
+                    className="btn btn-secondary flex items-center justify-center space-x-2 font-mono tracking-wider text-sm"
                   >
                     <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                     <span>ATUALIZAR</span>
                   </button>
                   <button
                     onClick={() => setShowOrderModal(true)}
-                    className={`btn font-mono tracking-wider flex items-center space-x-2 ${config.bgColor} text-white`}
+                    className={`btn font-mono tracking-wider flex items-center justify-center space-x-2 text-sm ${config.bgColor} text-white`}
                   >
                     <Plus className="h-4 w-4" />
                     <span>NOVA ORDEM</span>
@@ -321,13 +321,13 @@ export default function OrderbookPage({ params }) {
           </div>
 
           {/* STATUS DO SISTEMA */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="card bg-gray-750 border-gray-600">
               <div className="flex items-center space-x-3 mb-4">
                 <AlertCircle className="h-5 w-5 text-blue-500" />
-                <h3 className="font-bold text-gray-200 font-mono tracking-wider">STATUS DO MERCADO</h3>
+                <h3 className="font-bold text-gray-200 font-mono tracking-wider text-sm sm:text-base">STATUS DO MERCADO</h3>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-mono">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
                 <div className="text-center">
                   <div className="text-xs text-gray-400 tracking-wider">TOTAL ORDENS</div>
                   <div className={`text-lg font-bold ${config.color}`}>{stats.totalOrders}</div>
@@ -342,8 +342,8 @@ export default function OrderbookPage({ params }) {
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-400 tracking-wider">USUÁRIO ID</div>
-                  <div className="text-lg font-bold text-gray-400">
-                    {user?.uid ? user.uid.substring(0, 8) + '...' : 'N/A'}
+                  <div className="text-sm sm:text-lg font-bold text-gray-400">
+                    {user?.uid ? user.uid.substring(0, 6) + '...' : 'N/A'}
                   </div>
                 </div>
               </div>
@@ -351,141 +351,185 @@ export default function OrderbookPage({ params }) {
           </div>
 
           {/* ESTATÍSTICAS DE PREÇO */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
             <div className="stat-card">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">PREÇO MÉDIO</p>
-                  <p className={`text-2xl font-bold font-mono ${config.color}`}>
+                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">PREÇO MÉDIO</p>
+                  <p className={`text-lg sm:text-2xl font-bold font-mono ${config.color}`}>
                     {stats.averagePrice.toFixed(2)} $
                   </p>
                 </div>
-                <BarChart3 className={`h-8 w-8 ${config.color}`} />
+                <BarChart3 className={`h-6 w-6 sm:h-8 sm:w-8 ${config.color}`} />
               </div>
             </div>
             
             <div className="stat-card">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MAIOR PREÇO</p>
-                  <p className="text-2xl font-bold text-green-400 font-mono">
+                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MAIOR PREÇO</p>
+                  <p className="text-lg sm:text-2xl font-bold text-green-400 font-mono">
                     {stats.highestPrice.toFixed(2)} $
                   </p>
                 </div>
-                <div className="text-2xl text-green-400">📈</div>
+                <div className="text-lg sm:text-2xl text-green-400">📈</div>
               </div>
             </div>
             
             <div className="stat-card">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MENOR PREÇO</p>
-                  <p className="text-2xl font-bold text-red-400 font-mono">
+                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MENOR PREÇO</p>
+                  <p className="text-lg sm:text-2xl font-bold text-red-400 font-mono">
                     {(stats.lowestPrice || 0).toFixed(2)} $
                   </p>
                 </div>
-                <div className="text-2xl text-red-400">📉</div>
+                <div className="text-lg sm:text-2xl text-red-400">📉</div>
               </div>
             </div>
             
             <div className="stat-card">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">VOLUME TOTAL</p>
-                  <p className={`text-2xl font-bold font-mono ${config.color}`}>
+                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">VOLUME TOTAL</p>
+                  <p className={`text-lg sm:text-2xl font-bold font-mono ${config.color}`}>
                     {stats.totalVolume.toLocaleString()}
                   </p>
                 </div>
-                <div className="text-2xl">📊</div>
+                <div className="text-lg sm:text-2xl">📊</div>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
             {/* ORDERBOOK PRINCIPAL */}
             <div className="card">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-600">
-                <h2 className="text-2xl font-bold text-gray-200 font-mono tracking-wider">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-600">
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-200 font-mono tracking-wider">
                   ORDERBOOK
                 </h2>
-                <div className="text-sm text-gray-400 font-mono tracking-wider">
+                <div className="text-xs sm:text-sm text-gray-400 font-mono tracking-wider">
                   {orders.length} ORDEM{orders.length !== 1 ? 'S' : ''}
                 </div>
               </div>
               
               {loading ? (
-                <div className="flex justify-center py-12">
+                <div className="flex justify-center py-8 sm:py-12">
                   <div className="flex items-center space-x-4 font-mono text-gray-400">
                     <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
                     <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
                     <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
-                    <span className="tracking-wider">CARREGANDO ORDENS...</span>
+                    <span className="tracking-wider text-xs sm:text-sm">CARREGANDO ORDENS...</span>
                   </div>
                 </div>
               ) : orders.length > 0 ? (
-                <div className="orderbook-table overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead className="table-header">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                          PREÇO
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                          QUANTIDADE
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                          TOTAL
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                          TRADER
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-600">
-                      {orders.map(order => (
-                        <tr key={order.id} className="table-row">
-                          <td className="px-4 py-3">
-                            <div className="font-bold text-gray-200 font-mono">
-                              {order.price.toFixed(2)} $
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-gray-200 font-mono">
-                              {order.quantity.toLocaleString()}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="font-bold text-green-400 font-mono">
-                              {(order.price * order.quantity).toFixed(2)} $
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-gray-400 font-mono text-sm">
-                              {order.userId.substring(0, 8)}...
-                              {order.userId === user?.uid && (
-                                <span className={`ml-2 px-2 py-1 text-xs font-bold tracking-wider ${config.bgColor} text-white`}>
-                                  VOCÊ
-                                </span>
-                              )}
-                            </div>
-                          </td>
+                <>
+                  {/* TABELA DESKTOP */}
+                  <div className="hidden md:block orderbook-table overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead className="table-header">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                            PREÇO
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                            QUANTIDADE
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                            TOTAL
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                            TRADER
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-gray-600">
+                        {orders.map(order => (
+                          <tr key={order.id} className="table-row">
+                            <td className="px-4 py-3">
+                              <div className="font-bold text-gray-200 font-mono">
+                                {order.price.toFixed(2)} $
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="text-gray-200 font-mono">
+                                {order.quantity.toLocaleString()}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="font-bold text-green-400 font-mono">
+                                {(order.price * order.quantity).toFixed(2)} $
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="text-gray-400 font-mono text-sm">
+                                {order.userId.substring(0, 8)}...
+                                {order.userId === user?.uid && (
+                                  <span className={`ml-2 px-2 py-1 text-xs font-bold tracking-wider ${config.bgColor} text-white`}>
+                                    VOCÊ
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* CARDS MOBILE */}
+                  <div className="md:hidden space-y-3">
+                    {orders.map(order => (
+                      <div key={order.id} className="bg-gray-750 border border-gray-600 p-3 rounded-none">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-400 font-mono tracking-wider">PREÇO:</span>
+                              <span className="font-bold text-gray-200 font-mono">
+                                {order.price.toFixed(2)} $
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-400 font-mono tracking-wider">QTD:</span>
+                              <span className="text-gray-200 font-mono">
+                                {order.quantity.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-400 font-mono tracking-wider">TOTAL:</span>
+                              <span className="font-bold text-green-400 font-mono">
+                                {(order.price * order.quantity).toFixed(2)} $
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-400 font-mono tracking-wider">TRADER:</span>
+                              <div className="text-gray-400 font-mono text-xs">
+                                {order.userId.substring(0, 6)}...
+                                {order.userId === user?.uid && (
+                                  <span className={`ml-2 px-1 py-0.5 text-xs font-bold tracking-wider ${config.bgColor} text-white`}>
+                                    VOCÊ
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : (
-                <div className="text-center py-12">
-                  <TrendingUp className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
+                <div className="text-center py-8 sm:py-12">
+                  <TrendingUp className="h-12 w-12 sm:h-16 sm:w-16 text-gray-500 mx-auto mb-4" />
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
                     ORDERBOOK VAZIO
                   </h3>
-                  <p className="text-gray-500 font-mono tracking-wider mb-6">
+                  <p className="text-gray-500 font-mono tracking-wider mb-4 sm:mb-6 text-sm sm:text-base">
                     SEJA O PRIMEIRO A CRIAR UMA ORDEM PARA {config.resource}
                   </p>
                   <button
                     onClick={() => setShowOrderModal(true)}
-                    className={`btn ${config.bgColor} text-white font-mono tracking-wider`}
+                    className={`btn ${config.bgColor} text-white font-mono tracking-wider text-sm`}
                   >
                     CRIAR PRIMEIRA ORDEM
                   </button>
@@ -495,22 +539,22 @@ export default function OrderbookPage({ params }) {
 
             {/* SUAS ORDENS */}
             <div className="card">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-600">
-                <h2 className="text-2xl font-bold text-gray-200 font-mono tracking-wider">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-600">
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-200 font-mono tracking-wider">
                   SUAS ORDENS
                 </h2>
-                <div className="text-sm text-gray-400 font-mono tracking-wider">
+                <div className="text-xs sm:text-sm text-gray-400 font-mono tracking-wider">
                   {userOrders.length} ORDEM{userOrders.length !== 1 ? 'S' : ''}
                 </div>
               </div>
               
               {userOrders.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {userOrders.map(order => (
-                    <div key={order.id} className="bg-gray-750 border border-gray-600 p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="grid grid-cols-2 gap-4 text-sm font-mono">
+                    <div key={order.id} className="bg-gray-750 border border-gray-600 p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start space-y-3 sm:space-y-0">
+                        <div className="flex-1 w-full">
+                          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
                             <div>
                               <span className="text-gray-400 tracking-wider">PREÇO:</span>
                               <div className="font-bold text-gray-200">{order.price.toFixed(2)} $</div>
@@ -536,12 +580,12 @@ export default function OrderbookPage({ params }) {
                             </div>
                           </div>
                           <div className="mt-2 text-xs text-gray-500 font-mono">
-                            ID: {order.id}
+                            ID: {order.id.substring(0, 8)}...
                           </div>
                         </div>
                         <button
                           onClick={() => handleCancelOrder(order.id, order.price, order.quantity)}
-                          className="ml-4 btn btn-danger text-sm flex items-center space-x-1 font-mono tracking-wider"
+                          className="w-full sm:w-auto sm:ml-4 btn btn-danger text-xs sm:text-sm flex items-center justify-center space-x-1 font-mono tracking-wider"
                         >
                           <Trash2 className="h-3 w-3" />
                           <span>CANCELAR</span>
@@ -551,17 +595,17 @@ export default function OrderbookPage({ params }) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <TrendingUp className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
+                <div className="text-center py-8 sm:py-12">
+                  <TrendingUp className="h-12 w-12 sm:h-16 sm:w-16 text-gray-500 mx-auto mb-4" />
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
                     NENHUMA ORDEM SUA
                   </h3>
-                  <p className="text-gray-500 font-mono tracking-wider mb-6">
+                  <p className="text-gray-500 font-mono tracking-wider mb-4 sm:mb-6 text-sm sm:text-base">
                     VOCÊ NÃO TEM ORDENS ATIVAS PARA {config.resource}
                   </p>
                   <button
                     onClick={() => setShowOrderModal(true)}
-                    className={`btn ${config.bgColor} text-white font-mono tracking-wider`}
+                    className={`btn ${config.bgColor} text-white font-mono tracking-wider text-sm`}
                   >
                     CRIAR ORDEM
                   </button>

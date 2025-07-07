@@ -49,7 +49,7 @@ export default function OrderModal({ isOpen, onClose, resource }) {
     const totalCost = price * quantity;
 
     if (totalCost > (userData.balance || 0)) {
-      toast.error(`Saldo insuficiente. Você tem ${userData.balance?.toLocaleString()} RRCOIN`);
+      toast.error(`Saldo insuficiente. Você tem ${userData.balance?.toLocaleString()} $`);
       return;
     }
 
@@ -90,7 +90,7 @@ export default function OrderModal({ isOpen, onClose, resource }) {
 
       console.log('✅ Saldo atualizado de', userData.balance, 'para', newBalance);
 
-      toast.success(`Ordem criada! ${quantity} ${resource} por ${price.toFixed(2)} RRCOIN cada`);
+      toast.success(`Ordem criada! ${quantity} ${resource} por ${price.toFixed(2)} $ cada`);
       
       // Limpar formulário e fechar modal
       setOrderData({ price: '', quantity: '' });
@@ -127,21 +127,31 @@ export default function OrderModal({ isOpen, onClose, resource }) {
   const remainingBalance = userBalance - totalCost;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div className="modal max-w-md w-full p-6">
-        <div className="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
-          <h2 className="text-xl font-bold text-gray-200 font-mono tracking-wider">
-            NOVA ORDEM DE COMPRA - {resource}
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="modal max-w-md w-full mx-2 sm:mx-auto p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4 sm:mb-6 border-b border-gray-600 pb-3 sm:pb-4">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-200 font-mono tracking-wider">
+            NOVA ORDEM DE COMPRA
           </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-200 transition-colors"
+            className="text-gray-400 hover:text-gray-200 transition-colors p-1"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* RESOURCE INFO */}
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-750 border border-gray-600">
+          <div className="text-center">
+            <div className="text-2xl sm:text-3xl mb-2">{resource === 'GOLD' ? '🏆' : resource === 'OIL' ? '🛢️' : resource === 'ORE' ? '⛏️' : resource === 'DIA' ? '💎' : resource === 'URA' ? '☢️' : '💵'}</div>
+            <div className="font-bold text-gray-200 font-mono tracking-wider text-sm sm:text-base">
+              {resource}
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label className="block text-sm font-bold text-gray-300 mb-2 font-mono tracking-wider">
               PREÇO POR UNIDADE ($)
@@ -177,16 +187,16 @@ export default function OrderModal({ isOpen, onClose, resource }) {
             />
           </div>
 
-          <div className="bg-gray-750 p-4 border border-gray-600">
-            <div className="flex justify-between text-sm font-mono">
+          <div className="bg-gray-750 p-3 sm:p-4 border border-gray-600 space-y-2">
+            <div className="flex justify-between text-xs sm:text-sm font-mono">
               <span className="text-gray-400 tracking-wider">CUSTO TOTAL:</span>
               <span className="font-bold text-gray-200">{totalCost.toLocaleString()} $</span>
             </div>
-            <div className="flex justify-between text-sm mt-2 font-mono">
+            <div className="flex justify-between text-xs sm:text-sm font-mono">
               <span className="text-gray-400 tracking-wider">SALDO ATUAL:</span>
               <span className="font-bold text-gray-200">{userBalance.toLocaleString()} $</span>
             </div>
-            <div className="flex justify-between text-sm mt-2 font-mono">
+            <div className="flex justify-between text-xs sm:text-sm font-mono">
               <span className="text-gray-400 tracking-wider">SALDO RESTANTE:</span>
               <span className={`font-bold ${
                 remainingBalance >= 0 ? 'text-green-400' : 'text-red-400'
@@ -196,7 +206,16 @@ export default function OrderModal({ isOpen, onClose, resource }) {
             </div>
           </div>
 
-          <div className="flex space-x-3">
+          {/* WARNING MESSAGE */}
+          {remainingBalance < 0 && (
+            <div className="bg-red-900 border border-red-600 p-3 text-center">
+              <p className="text-red-200 font-mono text-xs sm:text-sm tracking-wider">
+                ⚠️ SALDO INSUFICIENTE
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
             <button
               type="button"
               onClick={handleClose}
@@ -214,6 +233,11 @@ export default function OrderModal({ isOpen, onClose, resource }) {
             </button>
           </div>
         </form>
+
+        {/* HELP TEXT */}
+        <div className="mt-4 sm:mt-6 text-xs text-gray-500 font-mono text-center">
+          <p>💡 Sua ordem ficará disponível no orderbook para outros traders</p>
+        </div>
       </div>
     </div>
   );

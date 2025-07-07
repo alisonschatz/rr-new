@@ -27,7 +27,7 @@
 
 @layer components {
   .btn {
-    @apply px-4 py-2 font-medium transition-colors cursor-pointer inline-flex items-center justify-center border;
+    @apply px-3 py-2 sm:px-4 sm:py-2 font-medium transition-colors cursor-pointer inline-flex items-center justify-center border text-sm sm:text-base;
     /* Remover border-radius para ficar quadrado */
     border-radius: 0;
   }
@@ -49,19 +49,19 @@
   }
   
   .card {
-    @apply bg-gray-800 p-6 border border-gray-600;
+    @apply bg-gray-800 p-3 sm:p-6 border border-gray-600;
     /* Remover border-radius para ficar quadrado */
     border-radius: 0;
   }
   
   .card-resource {
-    @apply bg-gray-800 p-6 border-2 transition-colors hover:bg-gray-750;
+    @apply bg-gray-800 p-4 sm:p-6 border-2 transition-colors hover:bg-gray-750;
     /* Remover border-radius para ficar quadrado */
     border-radius: 0;
   }
   
   .input {
-    @apply w-full px-4 py-3 bg-gray-700 border border-gray-500 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-400;
+    @apply w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-700 border border-gray-500 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-400 text-sm sm:text-base;
     /* Remover border-radius para ficar quadrado */
     border-radius: 0;
   }
@@ -71,7 +71,7 @@
   }
   
   .balance-display {
-    @apply bg-green-700 text-white px-4 py-2 font-bold border border-green-600;
+    @apply bg-green-700 text-white px-3 py-1 sm:px-4 sm:py-2 font-bold border border-green-600 text-sm sm:text-base;
     border-radius: 0;
   }
   
@@ -84,7 +84,7 @@
   .resource-cash { @apply border-emerald-700 bg-gray-800 hover:border-emerald-600; }
   
   .stat-card {
-    @apply bg-gray-800 p-4 border border-gray-600;
+    @apply bg-gray-800 p-3 sm:p-4 border border-gray-600;
     border-radius: 0;
   }
   
@@ -121,7 +121,7 @@
   
   /* Debug panel */
   .debug-panel {
-    @apply bg-gray-700 border border-gray-500 p-4;
+    @apply bg-gray-700 border border-gray-500 p-3 sm:p-4;
     border-radius: 0;
   }
   
@@ -141,14 +141,22 @@
   
   /* Linhas divisórias */
   .divider {
-    @apply border-t border-gray-600 my-4;
+    @apply border-t border-gray-600 my-3 sm:my-4;
   }
   
   /* Grid personalizado */
   .grid-rustic {
     display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  
+  /* Grid responsivo melhorado */
+  @screen sm {
+    .grid-rustic {
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
   }
   
   /* Botões de recursos específicos - tons mais escuros e rústicos */
@@ -163,5 +171,82 @@
   .page-container {
     @apply min-h-screen;
     background-color: #2a2a2a;
+  }
+  
+  /* Melhorias de responsividade específicas */
+  @media (max-width: 640px) {
+    .card {
+      @apply p-3;
+    }
+    
+    .btn {
+      @apply px-3 py-2 text-sm;
+    }
+    
+    .stat-card {
+      @apply p-3;
+    }
+    
+    .balance-display {
+      @apply px-2 py-1 text-sm;
+    }
+    
+    .input {
+      @apply px-3 py-2 text-sm;
+    }
+    
+    .modal {
+      @apply mx-2;
+      max-width: calc(100vw - 1rem);
+    }
+  }
+  
+  /* Overflow scroll suave em tabelas mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #4a5568 #2d3748;
+  }
+  
+  .mobile-scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .mobile-scroll::-webkit-scrollbar-track {
+    background: #2d3748;
+  }
+  
+  .mobile-scroll::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 0;
+  }
+  
+  /* Estados de loading responsivos */
+  @media (max-width: 640px) {
+    .loading-dots {
+      @apply text-xs;
+    }
+  }
+  
+  /* Ajustes para textos muito longos em mobile */
+  .truncate-mobile {
+    @apply truncate;
+  }
+  
+  @media (max-width: 640px) {
+    .truncate-mobile {
+      max-width: 120px;
+    }
+  }
+  
+  /* Melhorias nos espaçamentos em mobile */
+  @media (max-width: 640px) {
+    .space-y-mobile > * + * {
+      margin-top: 0.5rem;
+    }
+    
+    .space-x-mobile > * + * {
+      margin-left: 0.5rem;
+    }
   }
 }
