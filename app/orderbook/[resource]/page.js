@@ -2,14 +2,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, deleteDoc, updateDoc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
 import OrderModal from '@/components/OrderModal';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Plus, Trash2, TrendingUp, RefreshCw, AlertCircle, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, TrendingUp, RefreshCw, AlertCircle, BarChart3, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 
 const resourceConfig = {
@@ -124,6 +124,56 @@ export default function OrderbookPage({ params }) {
     }
   };
 
+  // Função para comprar uma ordem
+  const handleBuyOrder = async (order) => {
+    if (!user || !userData) {
+      toast.error('USUÁRIO NÃO AUTENTICADO');
+      return;
+    }
+
+    if (order.userId === user.uid) {
+      toast.error('VOCÊ NÃO PODE COMPRAR SUA PRÓPRIA ORDEM');
+      return;
+    }
+
+    const totalCost = order.price * order.quantity;
+
+    if (totalCost > (userData.balance || 0)) {
+      toast.error(`SALDO INSUFICIENTE. VOCÊ TEM ${userData.balance?.toLocaleString()} $`);
+      return;
+    }
+
+    try {
+      console.log('💰 Comprando ordem:', order);
+
+      // Remover a ordem do mercado
+      await deleteDoc(doc(db, 'orders', order.id));
+
+      // Deduzir dinheiro do comprador
+      const buyerRef = doc(db, 'users', user.uid);
+      await updateDoc(buyerRef, {
+        balance: userData.balance - totalCost
+      });
+
+      // Buscar dados do vendedor para adicionar o dinheiro
+      const sellerRef = doc(db, 'users', order.userId);
+      const sellerDoc = await getDoc(sellerRef);
+      
+      if (sellerDoc.exists()) {
+        const sellerData = sellerDoc.data();
+        await updateDoc(sellerRef, {
+          balance: (sellerData.balance || 0) + totalCost
+        });
+      }
+
+      toast.success(`COMPRA REALIZADA! ${order.quantity} ${config.resource} por ${totalCost.toFixed(2)} $`);
+      
+    } catch (error) {
+      console.error('❌ Erro ao comprar ordem:', error);
+      toast.error('ERRO AO PROCESSAR COMPRA');
+    }
+  };
+
   // Configurar listeners
   useEffect(() => {
     console.log('🚀 Inicializando orderbook para:', config.resource);
@@ -132,7 +182,7 @@ export default function OrderbookPage({ params }) {
     let unsubscribeUser = () => {};
     
     try {
-      // Listener para todas as ordens
+      // Listener para todas as ordens de venda
       const allOrdersQuery = query(
         collection(db, 'orders'),
         where('resource', '==', config.resource)
@@ -159,8 +209,8 @@ export default function OrderbookPage({ params }) {
             }
           });
 
-          // Ordenar por preço (maior primeiro)
-          ordersList.sort((a, b) => b.price - a.price);
+          // Ordenar por preço (menor primeiro para facilitar compras)
+          ordersList.sort((a, b) => a.price - b.price);
           
           console.log('✅ Ordens processadas:', ordersList.length);
           setOrders(ordersList);
@@ -225,7 +275,7 @@ export default function OrderbookPage({ params }) {
               return timeB - timeA;
             });
             
-            console.log('👤 Suas ordens:', userOrdersList.length);
+            console.log('👤 Suas ordens de venda:', userOrdersList.length);
             setUserOrders(userOrdersList);
           },
           (error) => {
@@ -247,25 +297,19 @@ export default function OrderbookPage({ params }) {
     };
   }, [config.resource, user]);
 
-  // Cancelar ordem
-  const handleCancelOrder = async (orderId, price, quantity) => {
+  // Cancelar ordem de venda
+  const handleCancelOrder = async (orderId) => {
     if (!user || !userData) {
       toast.error('USUÁRIO NÃO AUTENTICADO');
       return;
     }
 
     try {
-      console.log('🗑️ Cancelando ordem:', orderId);
+      console.log('🗑️ Cancelando ordem de venda:', orderId);
       
       await deleteDoc(doc(db, 'orders', orderId));
 
-      const refundAmount = price * quantity;
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        balance: userData.balance + refundAmount
-      });
-
-      toast.success(`ORDEM CANCELADA! ${refundAmount.toFixed(2)} $ DEVOLVIDOS`);
+      toast.success('ORDEM DE VENDA CANCELADA!');
     } catch (error) {
       console.error('❌ Erro ao cancelar ordem:', error);
       toast.error('ERRO AO CANCELAR ORDEM');
@@ -294,7 +338,7 @@ export default function OrderbookPage({ params }) {
                         {config.name}
                       </h1>
                       <p className="text-gray-400 font-mono tracking-wider text-sm sm:text-lg">
-                        ORDERBOOK - {config.resource}
+                        MARKETPLACE - {config.resource}
                       </p>
                     </div>
                   </div>
@@ -313,7 +357,7 @@ export default function OrderbookPage({ params }) {
                     className={`btn font-mono tracking-wider flex items-center justify-center space-x-2 text-sm ${config.bgColor} text-white`}
                   >
                     <Plus className="h-4 w-4" />
-                    <span>NOVA ORDEM</span>
+                    <span>VENDER {config.resource}</span>
                   </button>
                 </div>
               </div>
@@ -325,11 +369,11 @@ export default function OrderbookPage({ params }) {
             <div className="card bg-gray-750 border-gray-600">
               <div className="flex items-center space-x-3 mb-4">
                 <AlertCircle className="h-5 w-5 text-blue-500" />
-                <h3 className="font-bold text-gray-200 font-mono tracking-wider text-sm sm:text-base">STATUS DO MERCADO</h3>
+                <h3 className="font-bold text-gray-200 font-mono tracking-wider text-sm sm:text-base">STATUS DO MARKETPLACE</h3>
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
                 <div className="text-center">
-                  <div className="text-xs text-gray-400 tracking-wider">TOTAL ORDENS</div>
+                  <div className="text-xs text-gray-400 tracking-wider">ORDENS À VENDA</div>
                   <div className={`text-lg font-bold ${config.color}`}>{stats.totalOrders}</div>
                 </div>
                 <div className="text-center">
@@ -337,13 +381,13 @@ export default function OrderbookPage({ params }) {
                   <div className={`text-lg font-bold ${config.color}`}>{stats.totalVolume.toLocaleString()}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-400 tracking-wider">SUAS ORDENS</div>
+                  <div className="text-xs text-gray-400 tracking-wider">SUAS VENDAS</div>
                   <div className={`text-lg font-bold ${config.color}`}>{userOrders.length}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-400 tracking-wider">USUÁRIO ID</div>
-                  <div className="text-sm sm:text-lg font-bold text-gray-400">
-                    {user?.uid ? user.uid.substring(0, 6) + '...' : 'N/A'}
+                  <div className="text-xs text-gray-400 tracking-wider">SEU SALDO</div>
+                  <div className="text-sm sm:text-lg font-bold text-green-400">
+                    {userData?.balance?.toLocaleString() || '0'} $
                   </div>
                 </div>
               </div>
@@ -367,24 +411,24 @@ export default function OrderbookPage({ params }) {
             <div className="stat-card">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MAIOR PREÇO</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MENOR PREÇO</p>
                   <p className="text-lg sm:text-2xl font-bold text-green-400 font-mono">
-                    {stats.highestPrice.toFixed(2)} $
+                    {(stats.lowestPrice || 0).toFixed(2)} $
                   </p>
                 </div>
-                <div className="text-lg sm:text-2xl text-green-400">📈</div>
+                <div className="text-lg sm:text-2xl text-green-400">💰</div>
               </div>
             </div>
             
             <div className="stat-card">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MENOR PREÇO</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-400 font-mono tracking-wider mb-1">MAIOR PREÇO</p>
                   <p className="text-lg sm:text-2xl font-bold text-red-400 font-mono">
-                    {(stats.lowestPrice || 0).toFixed(2)} $
+                    {stats.highestPrice.toFixed(2)} $
                   </p>
                 </div>
-                <div className="text-lg sm:text-2xl text-red-400">📉</div>
+                <div className="text-lg sm:text-2xl text-red-400">📈</div>
               </div>
             </div>
             
@@ -402,14 +446,14 @@ export default function OrderbookPage({ params }) {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
-            {/* ORDERBOOK PRINCIPAL */}
+            {/* MARKETPLACE - ORDENS À VENDA */}
             <div className="card">
               <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-600">
                 <h2 className="text-lg sm:text-2xl font-bold text-gray-200 font-mono tracking-wider">
-                  ORDERBOOK
+                  ORDENS À VENDA
                 </h2>
                 <div className="text-xs sm:text-sm text-gray-400 font-mono tracking-wider">
-                  {orders.length} ORDEM{orders.length !== 1 ? 'S' : ''}
+                  {orders.length} DISPONÍVEL{orders.length !== 1 ? 'IS' : ''}
                 </div>
               </div>
               
@@ -419,7 +463,7 @@ export default function OrderbookPage({ params }) {
                     <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
                     <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
                     <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
-                    <span className="tracking-wider text-xs sm:text-sm">CARREGANDO ORDENS...</span>
+                    <span className="tracking-wider text-xs sm:text-sm">CARREGANDO OFERTAS...</span>
                   </div>
                 </div>
               ) : orders.length > 0 ? (
@@ -439,7 +483,10 @@ export default function OrderbookPage({ params }) {
                             TOTAL
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                            TRADER
+                            VENDEDOR
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                            AÇÃO
                           </th>
                         </tr>
                       </thead>
@@ -471,6 +518,20 @@ export default function OrderbookPage({ params }) {
                                 )}
                               </div>
                             </td>
+                            <td className="px-4 py-3">
+                              {order.userId === user?.uid ? (
+                                <span className="text-xs text-gray-500 font-mono">SUA ORDEM</span>
+                              ) : (
+                                <button
+                                  onClick={() => handleBuyOrder(order)}
+                                  className="btn btn-success text-xs flex items-center space-x-1"
+                                  disabled={!userData || (userData.balance || 0) < (order.price * order.quantity)}
+                                >
+                                  <ShoppingCart className="h-3 w-3" />
+                                  <span>COMPRAR</span>
+                                </button>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -481,7 +542,7 @@ export default function OrderbookPage({ params }) {
                   <div className="md:hidden space-y-3">
                     {orders.map(order => (
                       <div key={order.id} className="bg-gray-750 border border-gray-600 p-3 rounded-none">
-                        <div className="flex justify-between items-start mb-2">
+                        <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
                             <div className="flex justify-between items-center mb-1">
                               <span className="text-xs text-gray-400 font-mono tracking-wider">PREÇO:</span>
@@ -502,7 +563,7 @@ export default function OrderbookPage({ params }) {
                               </span>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span className="text-xs text-gray-400 font-mono tracking-wider">TRADER:</span>
+                              <span className="text-xs text-gray-400 font-mono tracking-wider">VENDEDOR:</span>
                               <div className="text-gray-400 font-mono text-xs">
                                 {order.userId.substring(0, 6)}...
                                 {order.userId === user?.uid && (
@@ -514,6 +575,20 @@ export default function OrderbookPage({ params }) {
                             </div>
                           </div>
                         </div>
+                        {order.userId === user?.uid ? (
+                          <div className="text-center text-xs text-gray-500 font-mono">
+                            SUA ORDEM DE VENDA
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleBuyOrder(order)}
+                            className="w-full btn btn-success text-xs flex items-center justify-center space-x-2"
+                            disabled={!userData || (userData.balance || 0) < (order.price * order.quantity)}
+                          >
+                            <ShoppingCart className="h-4 w-4" />
+                            <span>COMPRAR POR {(order.price * order.quantity).toFixed(2)} $</span>
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -522,29 +597,29 @@ export default function OrderbookPage({ params }) {
                 <div className="text-center py-8 sm:py-12">
                   <TrendingUp className="h-12 w-12 sm:h-16 sm:w-16 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg sm:text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
-                    ORDERBOOK VAZIO
+                    NENHUMA OFERTA DISPONÍVEL
                   </h3>
                   <p className="text-gray-500 font-mono tracking-wider mb-4 sm:mb-6 text-sm sm:text-base">
-                    SEJA O PRIMEIRO A CRIAR UMA ORDEM PARA {config.resource}
+                    SEJA O PRIMEIRO A VENDER {config.resource}
                   </p>
                   <button
                     onClick={() => setShowOrderModal(true)}
                     className={`btn ${config.bgColor} text-white font-mono tracking-wider text-sm`}
                   >
-                    CRIAR PRIMEIRA ORDEM
+                    CRIAR PRIMEIRA OFERTA
                   </button>
                 </div>
               )}
             </div>
 
-            {/* SUAS ORDENS */}
+            {/* SUAS ORDENS DE VENDA */}
             <div className="card">
               <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-600">
                 <h2 className="text-lg sm:text-2xl font-bold text-gray-200 font-mono tracking-wider">
-                  SUAS ORDENS
+                  SUAS VENDAS
                 </h2>
                 <div className="text-xs sm:text-sm text-gray-400 font-mono tracking-wider">
-                  {userOrders.length} ORDEM{userOrders.length !== 1 ? 'S' : ''}
+                  {userOrders.length} ATIVA{userOrders.length !== 1 ? 'S' : ''}
                 </div>
               </div>
               
@@ -564,13 +639,13 @@ export default function OrderbookPage({ params }) {
                               <div className="font-bold text-gray-200">{order.quantity}</div>
                             </div>
                             <div>
-                              <span className="text-gray-400 tracking-wider">TOTAL:</span>
+                              <span className="text-gray-400 tracking-wider">VALOR TOTAL:</span>
                               <div className="font-bold text-green-400">
                                 {(order.price * order.quantity).toFixed(2)} $
                               </div>
                             </div>
                             <div>
-                              <span className="text-gray-400 tracking-wider">DATA:</span>
+                              <span className="text-gray-400 tracking-wider">CRIADA EM:</span>
                               <div className="text-gray-400">
                                 {order.timestamp?.seconds 
                                   ? new Date(order.timestamp.seconds * 1000).toLocaleDateString('pt-BR')
@@ -584,7 +659,7 @@ export default function OrderbookPage({ params }) {
                           </div>
                         </div>
                         <button
-                          onClick={() => handleCancelOrder(order.id, order.price, order.quantity)}
+                          onClick={() => handleCancelOrder(order.id)}
                           className="w-full sm:w-auto sm:ml-4 btn btn-danger text-xs sm:text-sm flex items-center justify-center space-x-1 font-mono tracking-wider"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -598,16 +673,16 @@ export default function OrderbookPage({ params }) {
                 <div className="text-center py-8 sm:py-12">
                   <TrendingUp className="h-12 w-12 sm:h-16 sm:w-16 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg sm:text-xl font-bold text-gray-400 font-mono tracking-wider mb-2">
-                    NENHUMA ORDEM SUA
+                    NENHUMA VENDA ATIVA
                   </h3>
                   <p className="text-gray-500 font-mono tracking-wider mb-4 sm:mb-6 text-sm sm:text-base">
-                    VOCÊ NÃO TEM ORDENS ATIVAS PARA {config.resource}
+                    VOCÊ NÃO TEM ORDENS DE VENDA PARA {config.resource}
                   </p>
                   <button
                     onClick={() => setShowOrderModal(true)}
                     className={`btn ${config.bgColor} text-white font-mono tracking-wider text-sm`}
                   >
-                    CRIAR ORDEM
+                    CRIAR ORDEM DE VENDA
                   </button>
                 </div>
               )}
@@ -615,7 +690,7 @@ export default function OrderbookPage({ params }) {
           </div>
         </div>
 
-        {/* MODAL DE NOVA ORDEM */}
+        {/* MODAL DE NOVA ORDEM DE VENDA */}
         <OrderModal
           isOpen={showOrderModal}
           onClose={() => setShowOrderModal(false)}

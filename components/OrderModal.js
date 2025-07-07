@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -35,7 +35,7 @@ export default function OrderModal({ isOpen, onClose, resource }) {
     const price = parseFloat(orderData.price);
     const quantity = parseInt(orderData.quantity);
 
-    // Validações detalhadas
+    // Validações básicas
     if (!price || price <= 0) {
       toast.error('Preço deve ser maior que zero');
       return;
@@ -46,58 +46,41 @@ export default function OrderModal({ isOpen, onClose, resource }) {
       return;
     }
 
-    const totalCost = price * quantity;
-
-    if (totalCost > (userData.balance || 0)) {
-      toast.error(`Saldo insuficiente. Você tem ${userData.balance?.toLocaleString()} $`);
-      return;
-    }
-
     setLoading(true);
 
     try {
-      console.log('Criando ordem:', {
+      console.log('Criando ordem de venda:', {
         userId: user.uid,
         resource,
         price,
         quantity,
-        totalCost,
-        userBalance: userData.balance
+        type: 'sell'
       });
 
-      // Criar a ordem no Firestore
+      // Criar a ordem de venda no Firestore
       const orderData = {
         userId: user.uid,
         resource: resource,
         price: price,
         quantity: quantity,
+        type: 'sell', // Identificar como ordem de venda
         timestamp: serverTimestamp()
       };
 
-      console.log('Dados da ordem a ser salva:', orderData);
+      console.log('Dados da ordem de venda a ser salva:', orderData);
 
       const orderRef = await addDoc(collection(db, 'orders'), orderData);
 
-      console.log('✅ Ordem criada com sucesso! ID:', orderRef.id);
+      console.log('✅ Ordem de venda criada com sucesso! ID:', orderRef.id);
 
-      // Deduzir o saldo do usuário
-      const userRef = doc(db, 'users', user.uid);
-      const newBalance = userData.balance - totalCost;
-      
-      await updateDoc(userRef, {
-        balance: newBalance
-      });
-
-      console.log('✅ Saldo atualizado de', userData.balance, 'para', newBalance);
-
-      toast.success(`Ordem criada! ${quantity} ${resource} por ${price.toFixed(2)} $ cada`);
+      toast.success(`Ordem de venda criada! ${quantity} ${resource} por ${price.toFixed(2)} $ cada`);
       
       // Limpar formulário e fechar modal
       setOrderData({ price: '', quantity: '' });
       onClose();
 
     } catch (error) {
-      console.error('Erro detalhado ao criar ordem:', error);
+      console.error('Erro detalhado ao criar ordem de venda:', error);
       
       // Mensagens de erro mais específicas
       if (error.code === 'permission-denied') {
@@ -122,16 +105,14 @@ export default function OrderModal({ isOpen, onClose, resource }) {
 
   const price = parseFloat(orderData.price || 0);
   const quantity = parseInt(orderData.quantity || 0);
-  const totalCost = price * quantity || 0;
-  const userBalance = userData?.balance || 0;
-  const remainingBalance = userBalance - totalCost;
+  const totalValue = price * quantity || 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-2 sm:p-4 z-50">
       <div className="modal max-w-md w-full mx-2 sm:mx-auto p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4 sm:mb-6 border-b border-gray-600 pb-3 sm:pb-4">
           <h2 className="text-lg sm:text-xl font-bold text-gray-200 font-mono tracking-wider">
-            NOVA ORDEM DE COMPRA
+            NOVA ORDEM DE VENDA
           </h2>
           <button
             onClick={handleClose}
@@ -146,7 +127,10 @@ export default function OrderModal({ isOpen, onClose, resource }) {
           <div className="text-center">
             <div className="text-2xl sm:text-3xl mb-2">{resource === 'GOLD' ? '🏆' : resource === 'OIL' ? '🛢️' : resource === 'ORE' ? '⛏️' : resource === 'DIA' ? '💎' : resource === 'URA' ? '☢️' : '💵'}</div>
             <div className="font-bold text-gray-200 font-mono tracking-wider text-sm sm:text-base">
-              {resource}
+              VENDENDO {resource}
+            </div>
+            <div className="text-xs text-gray-400 font-mono tracking-wider mt-1">
+              Outros traders poderão comprar sua oferta
             </div>
           </div>
         </div>
@@ -168,11 +152,14 @@ export default function OrderModal({ isOpen, onClose, resource }) {
               placeholder="0.00"
               disabled={loading}
             />
+            <div className="text-xs text-gray-500 font-mono mt-1">
+              Preço que você quer receber por cada unidade
+            </div>
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-300 mb-2 font-mono tracking-wider">
-              QUANTIDADE
+              QUANTIDADE A VENDER
             </label>
             <input
               type="number"
@@ -185,35 +172,28 @@ export default function OrderModal({ isOpen, onClose, resource }) {
               placeholder="0"
               disabled={loading}
             />
+            <div className="text-xs text-gray-500 font-mono mt-1">
+              Quantas unidades você quer vender
+            </div>
           </div>
 
           <div className="bg-gray-750 p-3 sm:p-4 border border-gray-600 space-y-2">
             <div className="flex justify-between text-xs sm:text-sm font-mono">
-              <span className="text-gray-400 tracking-wider">CUSTO TOTAL:</span>
-              <span className="font-bold text-gray-200">{totalCost.toLocaleString()} $</span>
+              <span className="text-gray-400 tracking-wider">VALOR TOTAL:</span>
+              <span className="font-bold text-green-400">{totalValue.toLocaleString()} $</span>
             </div>
             <div className="flex justify-between text-xs sm:text-sm font-mono">
-              <span className="text-gray-400 tracking-wider">SALDO ATUAL:</span>
-              <span className="font-bold text-gray-200">{userBalance.toLocaleString()} $</span>
-            </div>
-            <div className="flex justify-between text-xs sm:text-sm font-mono">
-              <span className="text-gray-400 tracking-wider">SALDO RESTANTE:</span>
-              <span className={`font-bold ${
-                remainingBalance >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {remainingBalance.toLocaleString()} $
-              </span>
+              <span className="text-gray-400 tracking-wider">VOCÊ RECEBERÁ:</span>
+              <span className="font-bold text-green-400">{totalValue.toLocaleString()} $ (quando vendido)</span>
             </div>
           </div>
 
-          {/* WARNING MESSAGE */}
-          {remainingBalance < 0 && (
-            <div className="bg-red-900 border border-red-600 p-3 text-center">
-              <p className="text-red-200 font-mono text-xs sm:text-sm tracking-wider">
-                ⚠️ SALDO INSUFICIENTE
-              </p>
-            </div>
-          )}
+          {/* INFO MESSAGE */}
+          <div className="bg-blue-900 border border-blue-600 p-3 text-center">
+            <p className="text-blue-200 font-mono text-xs sm:text-sm tracking-wider">
+              💡 Sua ordem ficará disponível para outros traders comprarem
+            </p>
+          </div>
 
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
             <button
@@ -226,17 +206,17 @@ export default function OrderModal({ isOpen, onClose, resource }) {
             </button>
             <button
               type="submit"
-              disabled={loading || totalCost > userBalance || totalCost <= 0}
+              disabled={loading || totalValue <= 0}
               className="flex-1 btn btn-success font-mono tracking-wider"
             >
-              {loading ? 'CRIANDO...' : 'CRIAR ORDEM'}
+              {loading ? 'CRIANDO...' : 'CRIAR ORDEM DE VENDA'}
             </button>
           </div>
         </form>
 
         {/* HELP TEXT */}
         <div className="mt-4 sm:mt-6 text-xs text-gray-500 font-mono text-center">
-          <p>💡 Sua ordem ficará disponível no orderbook para outros traders</p>
+          <p>🏪 Outros traders poderão comprar seus recursos pelo preço definido</p>
         </div>
       </div>
     </div>
