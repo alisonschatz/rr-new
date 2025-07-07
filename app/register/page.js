@@ -21,17 +21,60 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  // Função para formatar telefone
+  const formatPhone = (value) => {
+    // Remove tudo que não é número
+    const digits = value.replace(/\D/g, '');
+    
+    // Aplica formatação baseada no tamanho
+    if (digits.length <= 10) {
+      // Formato: (11) 9999-9999
+      return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, (match, area, first, second) => {
+        if (second) {
+          return `(${area}) ${first}-${second}`;
+        } else if (first) {
+          return `(${area}) ${first}`;
+        } else if (area) {
+          return `(${area}`;
+        }
+        return digits;
+      });
+    } else {
+      // Formato: (11) 99999-9999
+      return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, (match, area, first, second) => {
+        if (second) {
+          return `(${area}) ${first}-${second}`;
+        } else if (first) {
+          return `(${area}) ${first}`;
+        } else if (area) {
+          return `(${area}`;
+        }
+        return digits;
+      });
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'phone') {
+      // Formatar telefone em tempo real
+      const formattedPhone = formatPhone(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: formattedPhone
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      toast.error('NOME É OBRIGATÓRIO');
+      toast.error('NICKNAME É OBRIGATÓRIO');
       return false;
     }
     
@@ -42,6 +85,13 @@ export default function Register() {
     
     if (!formData.phone.trim()) {
       toast.error('TELEFONE É OBRIGATÓRIO');
+      return false;
+    }
+    
+    // Validar telefone - deve ter pelo menos 10 dígitos
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      toast.error('TELEFONE DEVE TER PELO MENOS 10 DÍGITOS');
       return false;
     }
     
@@ -151,10 +201,10 @@ export default function Register() {
         {/* FORMULÁRIO */}
         <form onSubmit={createUserAccount} className="card space-y-6">
           
-          {/* NOME COMPLETO */}
+          {/* NICKNAME */}
           <div>
             <label className="block text-sm font-bold text-gray-300 mb-2 font-mono tracking-wider">
-              NOME COMPLETO
+              NICKNAME
             </label>
             <input
               type="text"
@@ -162,7 +212,7 @@ export default function Register() {
               value={formData.name}
               onChange={handleInputChange}
               className="input font-mono"
-              placeholder="SEU NOME COMPLETO"
+              placeholder="SEU NICKNAME"
               required
               disabled={isLoading}
             />
@@ -199,6 +249,7 @@ export default function Register() {
               placeholder="(11) 99999-9999"
               required
               disabled={isLoading}
+              maxLength={15}
             />
           </div>
 

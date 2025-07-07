@@ -4,8 +4,9 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { LogOut, TrendingUp, DollarSign, Menu, X, Plus } from 'lucide-react';
+import { LogOut, DollarSign, Menu, X, Plus } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
@@ -75,45 +76,50 @@ export default function Navbar() {
             href="/dashboard" 
             className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
           >
-            <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+            <Image
+              src="/logo.png"
+              alt="RR Exchange"
+              width={40}
+              height={40}
+              className="h-8 w-8 sm:h-10 sm:w-10"
+            />
             <span className="text-lg sm:text-xl font-bold text-gray-200 font-mono tracking-wider">
-              RR EXCHANGE
+              MERCADO DE RECURSOS
             </span>
           </Link>
 
           {/* MENU DESKTOP */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-4">
             
-            {/* SALDO */}
-            {userData && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-green-400 font-mono font-bold tracking-wider">
-                  SALDO
-                </span>
-                <div className="balance-display">
-                  <DollarSign className="h-4 w-4 inline mr-1" />
-                  <span className="text-lg font-bold font-mono">
-                    {(userData.balance || 0).toLocaleString()} $
-                  </span>
-                </div>
-              </div>
-            )}
-
             {/* BOTÃO DEPÓSITO */}
             {userData && (
               <button
                 onClick={handleDeposit}
                 disabled={depositLoading}
-                className="btn btn-success flex items-center space-x-2 font-mono tracking-wider text-sm"
+                className="btn btn-success flex items-center space-x-2 font-mono tracking-wider text-sm px-4 py-2"
               >
                 <Plus className="h-4 w-4" />
                 <span>{depositLoading ? 'DEPOSITANDO...' : 'DEPOSITAR'}</span>
               </button>
             )}
 
+            {/* SALDO */}
+            {userData && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-green-400 font-mono font-bold tracking-wider">
+                  SALDO:
+                </span>
+                <div className="balance-display">
+                  <span className="text-lg font-bold font-mono">
+                    $ {(userData.balance || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* USUÁRIO E LOGOUT */}
             {userData && (
-              <div className="flex items-center space-x-4 border-l border-gray-600 pl-6">
+              <div className="flex items-center space-x-4 border-l border-gray-600 pl-4">
                 <div className="text-sm font-mono">
                   <div className="font-bold text-gray-200 tracking-wider">
                     {userData.name.toUpperCase()}
@@ -165,19 +171,6 @@ export default function Navbar() {
           <div className="md:hidden border-t border-gray-600 bg-gray-800">
             <div className="px-2 py-4 space-y-3">
               
-              {/* SALDO MOBILE */}
-              {userData && (
-                <div className="px-3 py-3 bg-gray-750 border border-gray-600">
-                  <div className="text-xs text-gray-400 font-mono tracking-wider mb-1">
-                    SALDO DISPONÍVEL
-                  </div>
-                  <div className="flex items-center text-green-400 font-mono font-bold text-lg">
-                    <DollarSign className="h-5 w-5 mr-2" />
-                    <span>{(userData.balance || 0).toLocaleString()} $</span>
-                  </div>
-                </div>
-              )}
-
               {/* DEPÓSITO MOBILE */}
               {userData && (
                 <button
@@ -186,8 +179,20 @@ export default function Navbar() {
                   className="w-full bg-green-700 hover:bg-green-600 text-white flex items-center justify-center space-x-3 px-4 py-3 font-mono tracking-wider font-bold transition-colors"
                 >
                   <Plus className="h-5 w-5" />
-                  <span>{depositLoading ? 'DEPOSITANDO...' : 'DEPOSITAR 1000 $'}</span>
+                  <span>$ {depositLoading ? 'DEPOSITANDO...' : 'DEPOSITAR 1000'}</span>
                 </button>
+              )}
+
+              {/* SALDO MOBILE */}
+              {userData && (
+                <div className="px-3 py-3 bg-gray-750 border border-gray-600">
+                  <div className="text-xs text-gray-400 font-mono tracking-wider mb-1">
+                    SALDO DISPONÍVEL
+                  </div>
+                  <div className="flex items-center text-green-400 font-mono font-bold text-lg">
+                    <span>$ {(userData.balance || 0).toLocaleString()}</span>
+                  </div>
+                </div>
               )}
 
               {/* USUÁRIO MOBILE */}

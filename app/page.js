@@ -42,9 +42,6 @@ export default function Home() {
             height={120}
             className="mx-auto mb-4"
           />
-          <h1 className="text-4xl font-bold text-gray-200 font-mono tracking-wider mb-2">
-            RR EXCHANGE
-          </h1>
           <p className="text-gray-400 font-mono tracking-wider">
             SISTEMA DE TRADING DE RECURSOS
           </p>

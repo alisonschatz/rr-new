@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
 import ResourceCard from '@/components/ResourceCard';
-import { TrendingUp, Wallet, BarChart3 } from 'lucide-react';
+import { TrendingUp, BarChart3 } from 'lucide-react';
 
 const RESOURCES = ['GOLD', 'OIL', 'ORE', 'DIA', 'URA', 'CASH'];
 
@@ -67,12 +67,9 @@ export default function Dashboard() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           
-          {/* MERCADO DE RECURSOS - FOCO PRINCIPAL */}
+          {/* RECURSOS DISPONÍVEIS - FOCO PRINCIPAL */}
           <div className="card mb-8">
             <div className="text-center mb-8">
-              <h2 className="text-5xl font-bold text-gray-200 font-mono tracking-wider mb-3">
-                MERCADO DE RECURSOS
-              </h2>
               <p className="text-xl text-gray-400 font-mono tracking-wider mb-2">
                 ESCOLHA UM RECURSO PARA NEGOCIAR
               </p>
@@ -143,12 +140,12 @@ export default function Dashboard() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-gray-300 font-mono">
-                            {order.price.toLocaleString()} $
+                            $ {order.price.toLocaleString()}
                           </span>
                         </td>
                         <td className="px-4 py-3">
                           <span className="font-bold text-green-400 font-mono">
-                            {(order.price * order.quantity).toLocaleString()} $
+                            $ {(order.price * order.quantity).toLocaleString()}
                           </span>
                         </td>
                         <td className="px-4 py-3">
