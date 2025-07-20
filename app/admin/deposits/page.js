@@ -221,22 +221,22 @@ export default function AdminDepositsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           
           {/* CABEÇALHO */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="card">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-                <div className="flex items-center space-x-4">
-                  <Link href="/dashboard" className="btn btn-secondary font-mono text-sm">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+              <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <Link href="/dashboard" className="btn btn-secondary font-mono text-xs sm:text-sm">
+                    <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     VOLTAR
                   </Link>
-                  <div className="flex items-center space-x-3">
-                    <DollarSign className="h-8 w-8 text-green-500" />
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
                     <div>
-                      <h1 className="text-3xl font-bold text-gray-200 font-mono">
-                        PAINEL ADMINISTRATIVO
+                      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono">
+                        PAINEL ADMIN
                       </h1>
-                      <p className="text-gray-400 font-mono">
-                        Gerenciar solicitações de depósito
+                      <p className="text-gray-400 font-mono text-xs sm:text-sm">
+                        Gerenciar depósitos
                       </p>
                     </div>
                   </div>
@@ -246,9 +246,9 @@ export default function AdminDepositsPage() {
           </div>
 
           {/* ESTATÍSTICAS */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="stat-card text-center">
-              <div className="text-2xl font-bold text-yellow-400 font-mono">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
+            <div className="stat-card text-center p-2 sm:p-3">
+              <div className="text-lg sm:text-2xl font-bold text-yellow-400 font-mono">
                 {stats.pending}
               </div>
               <div className="text-xs text-gray-400 font-mono tracking-wider">
@@ -256,8 +256,8 @@ export default function AdminDepositsPage() {
               </div>
             </div>
             
-            <div className="stat-card text-center">
-              <div className="text-2xl font-bold text-green-400 font-mono">
+            <div className="stat-card text-center p-2 sm:p-3">
+              <div className="text-lg sm:text-2xl font-bold text-green-400 font-mono">
                 {stats.approved}
               </div>
               <div className="text-xs text-gray-400 font-mono tracking-wider">
@@ -265,8 +265,8 @@ export default function AdminDepositsPage() {
               </div>
             </div>
             
-            <div className="stat-card text-center">
-              <div className="text-2xl font-bold text-red-400 font-mono">
+            <div className="stat-card text-center p-2 sm:p-3">
+              <div className="text-lg sm:text-2xl font-bold text-red-400 font-mono">
                 {stats.rejected}
               </div>
               <div className="text-xs text-gray-400 font-mono tracking-wider">
@@ -274,8 +274,8 @@ export default function AdminDepositsPage() {
               </div>
             </div>
             
-            <div className="stat-card text-center">
-              <div className="text-lg font-bold text-yellow-400 font-mono">
+            <div className="stat-card text-center p-2 sm:p-3">
+              <div className="text-sm sm:text-lg font-bold text-yellow-400 font-mono">
                 {formatMoney(stats.totalPending)} $
               </div>
               <div className="text-xs text-gray-400 font-mono tracking-wider">
@@ -285,29 +285,29 @@ export default function AdminDepositsPage() {
           </div>
 
           {/* FILTROS */}
-          <div className="card mb-8">
-            <div className="flex space-x-4">
+          <div className="card mb-6 sm:mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
               <button
                 onClick={() => setFilter('pending')}
-                className={filter === 'pending' ? 'btn btn-primary font-mono' : 'btn btn-secondary font-mono'}
+                className={filter === 'pending' ? 'btn btn-primary font-mono text-xs sm:text-sm py-2 sm:py-3' : 'btn btn-secondary font-mono text-xs sm:text-sm py-2 sm:py-3'}
               >
                 PENDENTES ({stats.pending})
               </button>
               <button
                 onClick={() => setFilter('approved')}
-                className={filter === 'approved' ? 'btn btn-primary font-mono' : 'btn btn-secondary font-mono'}
+                className={filter === 'approved' ? 'btn btn-primary font-mono text-xs sm:text-sm py-2 sm:py-3' : 'btn btn-secondary font-mono text-xs sm:text-sm py-2 sm:py-3'}
               >
                 APROVADOS ({stats.approved})
               </button>
               <button
                 onClick={() => setFilter('rejected')}
-                className={filter === 'rejected' ? 'btn btn-primary font-mono' : 'btn btn-secondary font-mono'}
+                className={filter === 'rejected' ? 'btn btn-primary font-mono text-xs sm:text-sm py-2 sm:py-3' : 'btn btn-secondary font-mono text-xs sm:text-sm py-2 sm:py-3'}
               >
                 REJEITADOS ({stats.rejected})
               </button>
               <button
                 onClick={() => setFilter('all')}
-                className={filter === 'all' ? 'btn btn-primary font-mono' : 'btn btn-secondary font-mono'}
+                className={filter === 'all' ? 'btn btn-primary font-mono text-xs sm:text-sm py-2 sm:py-3' : 'btn btn-secondary font-mono text-xs sm:text-sm py-2 sm:py-3'}
               >
                 TODOS
               </button>
@@ -316,111 +316,126 @@ export default function AdminDepositsPage() {
 
           {/* LISTA DE SOLICITAÇÕES */}
           <div className="card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-600">
-              <h2 className="text-xl font-bold text-gray-200 font-mono">
+            <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-600">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-200 font-mono">
                 SOLICITAÇÕES ({depositRequests.length})
               </h2>
             </div>
             
             {loading ? (
-              <div className="flex justify-center py-12">
-                <div className="text-gray-400 font-mono">
+              <div className="flex justify-center py-8 sm:py-12">
+                <div className="text-gray-400 font-mono text-sm">
                   CARREGANDO SOLICITAÇÕES...
                 </div>
               </div>
             ) : depositRequests.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {depositRequests.map(request => (
-                  <div key={request.id} className="bg-gray-750 border border-gray-600 p-4">
-                    <div className="flex flex-col lg:flex-row justify-between items-start space-y-4 lg:space-y-0">
+                  <div key={request.id} className="bg-gray-750 border border-gray-600 p-3 sm:p-4">
+                    <div className="flex flex-col space-y-3">
                       
-                      {/* Informações da Solicitação */}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <span className={
-                            request.status === 'pending' ? 'text-2xl' :
-                            request.status === 'approved' ? 'text-2xl' : 'text-2xl'
-                          }>
-                            {request.status === 'pending' ? '⏳' :
-                             request.status === 'approved' ? '✅' : '❌'}
-                          </span>
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <span className="font-bold font-mono text-gray-200">
-                                {request.userName}
-                              </span>
-                              <span className={
-                                request.status === 'pending' ? 'px-2 py-1 text-xs font-bold font-mono bg-yellow-600 text-white' :
-                                request.status === 'approved' ? 'px-2 py-1 text-xs font-bold font-mono bg-green-600 text-white' :
-                                'px-2 py-1 text-xs font-bold font-mono bg-red-600 text-white'
-                              }>
-                                {request.status === 'pending' ? 'PENDENTE' :
-                                 request.status === 'approved' ? 'APROVADO' : 'REJEITADO'}
-                              </span>
-                            </div>
-                            <div className="text-xs text-gray-400 font-mono">
-                              ID: {request.id} | {request.userEmail}
-                            </div>
+                      {/* Cabeçalho da Solicitação - Mobile First */}
+                      <div className="flex items-center space-x-3">
+                        <span className="text-xl sm:text-2xl">
+                          {request.status === 'pending' ? '⏳' :
+                           request.status === 'approved' ? '✅' : '❌'}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                            <span className="font-bold font-mono text-gray-200 text-sm sm:text-base truncate">
+                              {request.userName}
+                            </span>
+                            <span className={
+                              request.status === 'pending' ? 'px-2 py-1 text-xs font-bold font-mono bg-yellow-600 text-white inline-block mt-1 sm:mt-0' :
+                              request.status === 'approved' ? 'px-2 py-1 text-xs font-bold font-mono bg-green-600 text-white inline-block mt-1 sm:mt-0' :
+                              'px-2 py-1 text-xs font-bold font-mono bg-red-600 text-white inline-block mt-1 sm:mt-0'
+                            }>
+                              {request.status === 'pending' ? 'PENDENTE' :
+                               request.status === 'approved' ? 'APROVADO' : 'REJEITADO'}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-400 font-mono mt-1">
+                            ID: {request.id.substring(0, 8)}... | {request.userEmail}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Informações da Solicitação - Grid Responsivo */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs sm:text-sm font-mono">
+                        <div className="bg-gray-800 border border-gray-600 p-2 sm:p-3">
+                          <span className="text-gray-400 block">VALOR:</span>
+                          <div className="font-bold text-green-400 text-sm sm:text-base">
+                            {formatMoney(request.amount)} $
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-mono">
-                          <div>
-                            <span className="text-gray-400">VALOR:</span>
-                            <div className="font-bold text-green-400">
-                              {formatMoney(request.amount)} $
-                            </div>
+                        <div className="bg-gray-800 border border-gray-600 p-2 sm:p-3">
+                          <span className="text-gray-400 block">SOLICITADO EM:</span>
+                          <div className="text-gray-200 text-xs sm:text-sm">
+                            {request.requestedAt?.seconds 
+                              ? new Date(request.requestedAt.seconds * 1000).toLocaleDateString('pt-BR')
+                              : 'N/A'
+                            }
                           </div>
-                          <div>
-                            <span className="text-gray-400">SOLICITADO EM:</span>
-                            <div className="text-gray-200">
-                              {request.requestedAt?.seconds 
-                                ? new Date(request.requestedAt.seconds * 1000).toLocaleString('pt-BR')
+                          <div className="text-gray-400 text-xs">
+                            {request.requestedAt?.seconds 
+                              ? new Date(request.requestedAt.seconds * 1000).toLocaleTimeString('pt-BR')
+                              : ''
+                            }
+                          </div>
+                        </div>
+                        
+                        {request.status !== 'pending' && (
+                          <div className="bg-gray-800 border border-gray-600 p-2 sm:p-3">
+                            <span className="text-gray-400 block">
+                              {request.status === 'approved' ? 'APROVADO EM:' : 'REJEITADO EM:'}
+                            </span>
+                            <div className="text-gray-200 text-xs sm:text-sm">
+                              {(request.approvedAt || request.rejectedAt)?.seconds 
+                                ? new Date((request.approvedAt || request.rejectedAt).seconds * 1000).toLocaleDateString('pt-BR')
                                 : 'N/A'
                               }
                             </div>
+                            <div className="text-gray-400 text-xs">
+                              {(request.approvedAt || request.rejectedAt)?.seconds 
+                                ? new Date((request.approvedAt || request.rejectedAt).seconds * 1000).toLocaleTimeString('pt-BR')
+                                : ''
+                              }
+                            </div>
                           </div>
-                          {request.status !== 'pending' && (
-                            <div>
-                              <span className="text-gray-400">
-                                {request.status === 'approved' ? 'APROVADO EM:' : 'REJEITADO EM:'}
-                              </span>
-                              <div className="text-gray-200">
-                                {(request.approvedAt || request.rejectedAt)?.seconds 
-                                  ? new Date((request.approvedAt || request.rejectedAt).seconds * 1000).toLocaleString('pt-BR')
-                                  : 'N/A'
-                                }
-                              </div>
+                        )}
+                        
+                        {request.description && (
+                          <div className="bg-gray-800 border border-gray-600 p-2 sm:p-3 sm:col-span-2 lg:col-span-1">
+                            <span className="text-gray-400 block">DESCRIÇÃO:</span>
+                            <div className="text-gray-200 text-xs break-words">
+                              {request.description.length > 50 
+                                ? request.description.substring(0, 47) + '...'
+                                : request.description
+                              }
                             </div>
-                          )}
-                          {request.description && (
-                            <div>
-                              <span className="text-gray-400">DESCRIÇÃO:</span>
-                              <div className="text-gray-200 text-xs">
-                                {request.description}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {request.rejectionReason && (
-                          <div className="mt-3 p-2 bg-red-900 border border-red-600">
-                            <span className="text-red-200 font-mono text-xs">
-                              <strong>Motivo da rejeição:</strong> {request.rejectionReason}
-                            </span>
                           </div>
                         )}
                       </div>
 
-                      {/* Ações */}
+                      {/* Motivo da Rejeição */}
+                      {request.rejectionReason && (
+                        <div className="p-2 sm:p-3 bg-red-900 border border-red-600">
+                          <span className="text-red-200 font-mono text-xs">
+                            <strong>Motivo da rejeição:</strong> {request.rejectionReason}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Ações - Mobile First */}
                       {request.status === 'pending' && (
-                        <div className="flex space-x-2">
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 pt-3 border-t border-gray-600">
                           <button
                             onClick={() => handleApprove(request.id, request.userId, request.amount)}
                             disabled={processingId === request.id}
-                            className="btn btn-success text-xs font-mono"
+                            className="flex-1 btn btn-success text-xs sm:text-sm font-mono py-2 sm:py-3"
                           >
-                            {processingId === request.id ? '...' : '✅ APROVAR'}
+                            {processingId === request.id ? 'PROCESSANDO...' : '✅ APROVAR DEPÓSITO'}
                           </button>
                           <button
                             onClick={() => {
@@ -430,9 +445,9 @@ export default function AdminDepositsPage() {
                               }
                             }}
                             disabled={processingId === request.id}
-                            className="btn btn-danger text-xs font-mono"
+                            className="flex-1 btn btn-danger text-xs sm:text-sm font-mono py-2 sm:py-3"
                           >
-                            {processingId === request.id ? '...' : '❌ REJEITAR'}
+                            {processingId === request.id ? 'PROCESSANDO...' : '❌ REJEITAR'}
                           </button>
                         </div>
                       )}
