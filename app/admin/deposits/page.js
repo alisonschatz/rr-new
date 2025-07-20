@@ -1,8 +1,8 @@
-// app/admin/deposits/page.js - Painel Administrativo de Depósitos
+// app/admin/deposits/page.js - CORRIGIDO - Painel Administrativo de Depósitos
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, getDoc, orderBy, where } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, getDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -47,19 +47,17 @@ export default function AdminDepositsPage() {
       return;
     }
 
-    console.log('🔄 Carregando solicitações de depósito...');
+    console.log('🔄 Carregando solicitações de depósito para filtro:', filter);
 
     let q;
     if (filter === 'all') {
-      q = query(
-        collection(db, 'deposit_requests'),
-        orderBy('requestedAt', 'desc')
-      );
+      // Para 'all', buscar todos os documentos
+      q = query(collection(db, 'deposit_requests'));
     } else {
+      // Para filtros específicos, usar apenas where (sem orderBy para evitar erro de índice)
       q = query(
         collection(db, 'deposit_requests'),
-        where('status', '==', filter),
-        orderBy('requestedAt', 'desc')
+        where('status', '==', filter)
       );
     }
 
@@ -71,13 +69,22 @@ export default function AdminDepositsPage() {
           ...doc.data()
         }));
         
-        console.log(`📊 ${requests.length} solicitações encontradas`);
+        // Ordenar no frontend por data (mais recente primeiro)
+        requests.sort((a, b) => {
+          const timeA = a.requestedAt?.seconds || 0;
+          const timeB = b.requestedAt?.seconds || 0;
+          return timeB - timeA;
+        });
+        
+        console.log(`📊 ${requests.length} solicitações encontradas para filtro: ${filter}`);
         setDepositRequests(requests);
         setLoading(false);
       },
       (error) => {
         console.error('❌ Erro ao carregar solicitações:', error);
+        console.error('Detalhes do erro:', error.message);
         setLoading(false);
+        toast.error('ERRO AO CARREGAR DADOS: ' + error.message);
       }
     );
 
@@ -122,7 +129,7 @@ export default function AdminDepositsPage() {
 
     } catch (error) {
       console.error('❌ Erro ao aprovar depósito:', error);
-      toast.error('ERRO AO APROVAR DEPÓSITO');
+      toast.error('ERRO AO APROVAR DEPÓSITO: ' + error.message);
     } finally {
       setProcessingId(null);
     }
@@ -151,7 +158,7 @@ export default function AdminDepositsPage() {
 
     } catch (error) {
       console.error('❌ Erro ao rejeitar depósito:', error);
-      toast.error('ERRO AO REJEITAR DEPÓSITO');
+      toast.error('ERRO AO REJEITAR DEPÓSITO: ' + error.message);
     } finally {
       setProcessingId(null);
     }
@@ -236,7 +243,7 @@ export default function AdminDepositsPage() {
                         PAINEL ADMIN
                       </h1>
                       <p className="text-gray-400 font-mono text-xs sm:text-sm">
-                        Gerenciar depósitos
+                        Gerenciar depósitos - Filtro atual: {filter.toUpperCase()}
                       </p>
                     </div>
                   </div>
@@ -309,10 +316,19 @@ export default function AdminDepositsPage() {
                 onClick={() => setFilter('all')}
                 className={filter === 'all' ? 'btn btn-primary font-mono text-xs sm:text-sm py-2 sm:py-3' : 'btn btn-secondary font-mono text-xs sm:text-sm py-2 sm:py-3'}
               >
-                TODOS
+                TODOS ({depositRequests.length})
               </button>
             </div>
           </div>
+
+          {/* DEBUG INFO */}
+          {loading && (
+            <div className="card mb-6 bg-blue-900 border-blue-600">
+              <div className="text-blue-200 font-mono text-sm">
+                🔄 Carregando dados para filtro: {filter}...
+              </div>
+            </div>
+          )}
 
           {/* LISTA DE SOLICITAÇÕES */}
           <div className="card">
@@ -320,12 +336,18 @@ export default function AdminDepositsPage() {
               <h2 className="text-lg sm:text-xl font-bold text-gray-200 font-mono">
                 SOLICITAÇÕES ({depositRequests.length})
               </h2>
+              <div className="text-xs text-gray-400 font-mono">
+                Filtro: {filter.toUpperCase()}
+              </div>
             </div>
             
             {loading ? (
               <div className="flex justify-center py-8 sm:py-12">
-                <div className="text-gray-400 font-mono text-sm">
-                  CARREGANDO SOLICITAÇÕES...
+                <div className="text-gray-400 font-mono text-sm flex items-center space-x-2">
+                  <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
+                  <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
+                  <div className="w-4 h-1 bg-gray-600 animate-pulse"></div>
+                  <span>CARREGANDO SOLICITAÇÕES...</span>
                 </div>
               </div>
             ) : depositRequests.length > 0 ? (
@@ -467,6 +489,9 @@ export default function AdminDepositsPage() {
                    filter === 'rejected' ? 'Não há depósitos rejeitados' :
                    'Não há solicitações de depósito'}
                 </p>
+                <div className="mt-4 text-xs text-gray-600 font-mono">
+                  Filtro atual: {filter} | Total de registros: {depositRequests.length}
+                </div>
               </div>
             )}
           </div>
