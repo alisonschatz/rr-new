@@ -1,10 +1,11 @@
-// components/DepositModal.js - Modal de Solicitação de Depósito
+// components/DepositModal.js - ATUALIZADO COM NOTIFICAÇÕES TELEGRAM
 'use client';
 
 import { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
+import { sendDepositNotification } from '@/lib/telegram';
 import toast from 'react-hot-toast';
 import { X, DollarSign } from 'lucide-react';
 
@@ -27,6 +28,7 @@ export default function DepositModal({ isOpen, onClose }) {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [telegramNotificationSent, setTelegramNotificationSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,12 +45,13 @@ export default function DepositModal({ isOpen, onClose }) {
       return;
     }
 
-    if (depositAmount > 1000000000000000) { // Limite de 1kkkkkk
+    if (depositAmount > 1000000000000000) {
       toast.error('VALOR MÁXIMO: 1kkkkkk $');
       return;
     }
 
     setLoading(true);
+    setTelegramNotificationSent(false);
 
     try {
       console.log('💰 Criando solicitação de depósito:', {
@@ -64,7 +67,7 @@ export default function DepositModal({ isOpen, onClose }) {
         userEmail: userData.email || '',
         amount: depositAmount,
         description: description.trim() || 'Depósito solicitado',
-        status: 'pending', // pending, approved, rejected
+        status: 'pending',
         requestedAt: serverTimestamp(),
         approvedAt: null,
         approvedBy: null,
@@ -76,7 +79,32 @@ export default function DepositModal({ isOpen, onClose }) {
 
       console.log('✅ Solicitação de depósito criada com ID:', depositRef.id);
 
-      toast.success('SOLICITAÇÃO ENVIADA! AGUARDE APROVAÇÃO DO ADMINISTRADOR');
+      // Tentar enviar notificação para Telegram
+      try {
+        console.log('📱 Tentando enviar notificação para Telegram...');
+        
+        const notificationSent = await sendDepositNotification(
+          {
+            userName: userData.name || 'Usuário',
+            userEmail: userData.email || '',
+            amount: depositAmount,
+            description: description.trim() || 'Depósito solicitado'
+          },
+          depositRef.id
+        );
+
+        if (notificationSent) {
+          console.log('✅ Notificação Telegram enviada com sucesso!');
+          setTelegramNotificationSent(true);
+          toast.success('SOLICITAÇÃO ENVIADA! ADMINISTRADOR NOTIFICADO VIA TELEGRAM 📱');
+        } else {
+          console.log('⚠️ Notificação Telegram não enviada (configuração)');
+          toast.success('SOLICITAÇÃO ENVIADA! AGUARDE APROVAÇÃO DO ADMINISTRADOR');
+        }
+      } catch (telegramError) {
+        console.error('❌ Erro na notificação Telegram:', telegramError);
+        toast.success('SOLICITAÇÃO ENVIADA! AGUARDE APROVAÇÃO DO ADMINISTRADOR');
+      }
       
       // Limpar formulário e fechar modal
       setAmount('');
@@ -94,6 +122,7 @@ export default function DepositModal({ isOpen, onClose }) {
   const handleClose = () => {
     setAmount('');
     setDescription('');
+    setTelegramNotificationSent(false);
     onClose();
   };
 
@@ -185,12 +214,25 @@ export default function DepositModal({ isOpen, onClose }) {
               <span className="text-blue-400 mt-1">ℹ️</span>
               <div className="text-blue-200 font-mono text-xs space-y-2">
                 <p>• Sua solicitação será enviada para análise do administrador</p>
+                <p>• O administrador será notificado automaticamente via Telegram 📱</p>
                 <p>• O depósito será creditado após aprovação</p>
                 <p>• Você receberá uma notificação sobre o status</p>
                 <p>• Tempo médio de aprovação: 24-48 horas</p>
               </div>
             </div>
           </div>
+
+          {/* NOTIFICAÇÃO TELEGRAM STATUS */}
+          {telegramNotificationSent && (
+            <div className="bg-green-900 border border-green-600 p-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-green-400">✅</span>
+                <span className="text-green-200 font-mono text-xs">
+                  ADMINISTRADOR NOTIFICADO VIA TELEGRAM
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* BOTÕES */}
           <div className="flex space-x-3">
@@ -215,6 +257,9 @@ export default function DepositModal({ isOpen, onClose }) {
         {/* INFORMAÇÕES DE CONTATO */}
         <div className="mt-6 pt-4 border-t border-gray-600 text-center">
           <p className="text-xs text-gray-500 font-mono">
+            📱 O administrador será notificado automaticamente via Telegram
+          </p>
+          <p className="text-xs text-gray-500 font-mono mt-1">
             Em caso de dúvidas, entre em contato com o suporte
           </p>
         </div>
