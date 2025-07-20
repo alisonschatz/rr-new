@@ -1,4 +1,4 @@
-// app/admin/deposits/page.js - CORRIGIDO - Painel Administrativo de Depósitos
+// app/admin/deposits/page.js - VERSÃO FINAL LIMPA
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -25,20 +25,19 @@ const formatMoney = (number) => {
   return num.toFixed(2);
 };
 
-// Lista de administradores (você pode mover isso para uma coleção no Firestore)
+// Lista de administradores
 const ADMIN_UIDS = [
-  'XgZ620lbRTQA6ELAvfqWBXKQGGJ3', // UID do administrador
-  // Adicione mais UIDs de administradores se necessário
+  'XgZ620lbRTQA6ELAvfqWBXKQGGJ3',
 ];
 
 export default function AdminDepositsPage() {
   const { user, userData } = useAuth();
   const [depositRequests, setDepositRequests] = useState([]);
+  const [allRequests, setAllRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending');
   const [processingId, setProcessingId] = useState(null);
 
-  // Verificar se é administrador
   const isAdmin = user && ADMIN_UIDS.includes(user.uid);
 
   useEffect(() => {
@@ -47,44 +46,46 @@ export default function AdminDepositsPage() {
       return;
     }
 
-    console.log('🔄 Carregando solicitações de depósito para filtro:', filter);
-
-    let q;
-    if (filter === 'all') {
-      // Para 'all', buscar todos os documentos
-      q = query(collection(db, 'deposit_requests'));
-    } else {
-      // Para filtros específicos, usar apenas where (sem orderBy para evitar erro de índice)
-      q = query(
-        collection(db, 'deposit_requests'),
-        where('status', '==', filter)
-      );
-    }
+    // Buscar TODOS os documentos e filtrar no frontend
+    const allQuery = query(collection(db, 'deposit_requests'));
 
     const unsubscribe = onSnapshot(
-      q,
+      allQuery,
       (snapshot) => {
-        const requests = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const allDocs = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            status: data.status || 'unknown'
+          };
+        });
+
+        setAllRequests(allDocs);
+
+        // Filtrar conforme seleção
+        let filteredRequests = [];
         
-        // Ordenar no frontend por data (mais recente primeiro)
-        requests.sort((a, b) => {
+        if (filter === 'all') {
+          filteredRequests = allDocs;
+        } else {
+          filteredRequests = allDocs.filter(request => request.status === filter);
+        }
+
+        // Ordenar por data (mais recente primeiro)
+        filteredRequests.sort((a, b) => {
           const timeA = a.requestedAt?.seconds || 0;
           const timeB = b.requestedAt?.seconds || 0;
           return timeB - timeA;
         });
-        
-        console.log(`📊 ${requests.length} solicitações encontradas para filtro: ${filter}`);
-        setDepositRequests(requests);
+
+        setDepositRequests(filteredRequests);
         setLoading(false);
       },
       (error) => {
         console.error('❌ Erro ao carregar solicitações:', error);
-        console.error('Detalhes do erro:', error.message);
         setLoading(false);
-        toast.error('ERRO AO CARREGAR DADOS: ' + error.message);
+        toast.error('ERRO AO CARREGAR DADOS');
       }
     );
 
@@ -100,8 +101,6 @@ export default function AdminDepositsPage() {
     setProcessingId(requestId);
 
     try {
-      console.log('✅ Aprovando depósito:', { requestId, userId, amount });
-
       // 1. Atualizar saldo do usuário
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
@@ -129,7 +128,7 @@ export default function AdminDepositsPage() {
 
     } catch (error) {
       console.error('❌ Erro ao aprovar depósito:', error);
-      toast.error('ERRO AO APROVAR DEPÓSITO: ' + error.message);
+      toast.error('ERRO AO APROVAR DEPÓSITO');
     } finally {
       setProcessingId(null);
     }
@@ -144,8 +143,6 @@ export default function AdminDepositsPage() {
     setProcessingId(requestId);
 
     try {
-      console.log('❌ Rejeitando depósito:', { requestId, reason });
-
       const requestRef = doc(db, 'deposit_requests', requestId);
       await updateDoc(requestRef, {
         status: 'rejected',
@@ -158,7 +155,7 @@ export default function AdminDepositsPage() {
 
     } catch (error) {
       console.error('❌ Erro ao rejeitar depósito:', error);
-      toast.error('ERRO AO REJEITAR DEPÓSITO: ' + error.message);
+      toast.error('ERRO AO REJEITAR DEPÓSITO');
     } finally {
       setProcessingId(null);
     }
@@ -212,10 +209,10 @@ export default function AdminDepositsPage() {
   }
 
   const stats = {
-    pending: depositRequests.filter(r => r.status === 'pending').length,
-    approved: depositRequests.filter(r => r.status === 'approved').length,
-    rejected: depositRequests.filter(r => r.status === 'rejected').length,
-    totalPending: depositRequests
+    pending: allRequests.filter(r => r.status === 'pending').length,
+    approved: allRequests.filter(r => r.status === 'approved').length,
+    rejected: allRequests.filter(r => r.status === 'rejected').length,
+    totalPending: allRequests
       .filter(r => r.status === 'pending')
       .reduce((sum, r) => sum + (r.amount || 0), 0)
   };
@@ -243,7 +240,7 @@ export default function AdminDepositsPage() {
                         PAINEL ADMIN
                       </h1>
                       <p className="text-gray-400 font-mono text-xs sm:text-sm">
-                        Gerenciar depósitos - Filtro atual: {filter.toUpperCase()}
+                        Gerenciar depósitos
                       </p>
                     </div>
                   </div>
@@ -316,19 +313,10 @@ export default function AdminDepositsPage() {
                 onClick={() => setFilter('all')}
                 className={filter === 'all' ? 'btn btn-primary font-mono text-xs sm:text-sm py-2 sm:py-3' : 'btn btn-secondary font-mono text-xs sm:text-sm py-2 sm:py-3'}
               >
-                TODOS ({depositRequests.length})
+                TODOS ({allRequests.length})
               </button>
             </div>
           </div>
-
-          {/* DEBUG INFO */}
-          {loading && (
-            <div className="card mb-6 bg-blue-900 border-blue-600">
-              <div className="text-blue-200 font-mono text-sm">
-                🔄 Carregando dados para filtro: {filter}...
-              </div>
-            </div>
-          )}
 
           {/* LISTA DE SOLICITAÇÕES */}
           <div className="card">
@@ -336,9 +324,6 @@ export default function AdminDepositsPage() {
               <h2 className="text-lg sm:text-xl font-bold text-gray-200 font-mono">
                 SOLICITAÇÕES ({depositRequests.length})
               </h2>
-              <div className="text-xs text-gray-400 font-mono">
-                Filtro: {filter.toUpperCase()}
-              </div>
             </div>
             
             {loading ? (
@@ -356,7 +341,7 @@ export default function AdminDepositsPage() {
                   <div key={request.id} className="bg-gray-750 border border-gray-600 p-3 sm:p-4">
                     <div className="flex flex-col space-y-3">
                       
-                      {/* Cabeçalho da Solicitação - Mobile First */}
+                      {/* Cabeçalho da Solicitação */}
                       <div className="flex items-center space-x-3">
                         <span className="text-xl sm:text-2xl">
                           {request.status === 'pending' ? '⏳' :
@@ -382,7 +367,7 @@ export default function AdminDepositsPage() {
                         </div>
                       </div>
                       
-                      {/* Informações da Solicitação - Grid Responsivo */}
+                      {/* Informações da Solicitação */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs sm:text-sm font-mono">
                         <div className="bg-gray-800 border border-gray-600 p-2 sm:p-3">
                           <span className="text-gray-400 block">VALOR:</span>
@@ -449,7 +434,7 @@ export default function AdminDepositsPage() {
                         </div>
                       )}
 
-                      {/* Ações - Mobile First */}
+                      {/* Ações */}
                       {request.status === 'pending' && (
                         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 pt-3 border-t border-gray-600">
                           <button
@@ -489,9 +474,6 @@ export default function AdminDepositsPage() {
                    filter === 'rejected' ? 'Não há depósitos rejeitados' :
                    'Não há solicitações de depósito'}
                 </p>
-                <div className="mt-4 text-xs text-gray-600 font-mono">
-                  Filtro atual: {filter} | Total de registros: {depositRequests.length}
-                </div>
               </div>
             )}
           </div>
