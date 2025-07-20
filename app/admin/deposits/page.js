@@ -135,7 +135,7 @@ export default function AdminDepositsPage() {
         console.log('📱 Enviando notificação de aprovação para Telegram...');
         await sendDepositApprovedNotification(requestDoc, requestId);
         console.log('✅ Notificação de aprovação enviada para Telegram');
-        toast.success(`DEPÓSITO APROVADO! ${formatMoney(amount)} $ creditado - Admin notificado via Telegram 📱`);
+        toast.success(`DEPÓSITO APROVADO! ${formatMoney(amount)} $ creditado`);
       } catch (telegramError) {
         console.warn('⚠️ Erro ao enviar notificação de aprovação:', telegramError);
         toast.success(`DEPÓSITO APROVADO! ${formatMoney(amount)} $ creditado`);
@@ -176,7 +176,7 @@ export default function AdminDepositsPage() {
         console.log('📱 Enviando notificação de rejeição para Telegram...');
         await sendDepositRejectedNotification(requestDoc, requestId, reason);
         console.log('✅ Notificação de rejeição enviada para Telegram');
-        toast.success('DEPÓSITO REJEITADO - Admin notificado via Telegram 📱');
+        toast.success('DEPÓSITO REJEITADO');
       } catch (telegramError) {
         console.warn('⚠️ Erro ao enviar notificação de rejeição:', telegramError);
         toast.success('DEPÓSITO REJEITADO');
@@ -269,21 +269,13 @@ export default function AdminDepositsPage() {
                         PAINEL ADMIN
                       </h1>
                       <p className="text-gray-400 font-mono text-xs sm:text-sm">
-                        Gerenciar depósitos com notificações Telegram 📱
+                        Gerenciar depósitos
                       </p>
                     </div>
                   </div>
                 </div>
                 
-                {/* BOTÃO DE TESTE DO TELEGRAM */}
-                <div className="flex space-x-2">
-                  <Link 
-                    href="/admin/telegram-test"
-                    className="btn bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs sm:text-sm px-3 py-2"
-                  >
-                    🤖 TESTAR BOT
-                  </Link>
-                </div>
+
               </div>
             </div>
           </div>
@@ -357,34 +349,7 @@ export default function AdminDepositsPage() {
             </div>
           </div>
 
-          {/* INFORMAÇÕES DO TELEGRAM */}
-          <div className="card mb-6 sm:mb-8 bg-blue-900 border-blue-600">
-            <div className="flex items-center space-x-3 mb-4">
-              <span className="text-2xl">📱</span>
-              <div>
-                <h3 className="text-lg font-bold text-blue-200 font-mono">
-                  NOTIFICAÇÕES TELEGRAM ATIVAS
-                </h3>
-                <p className="text-blue-300 font-mono text-sm">
-                  Bot: @rr_exchange_admin_bot | Você receberá alertas automáticos
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-mono text-blue-200">
-              <div className="flex items-center space-x-2">
-                <span>🔔</span>
-                <span>Nova solicitação → Alerta instantâneo</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>✅</span>
-                <span>Aprovação → Confirmação automática</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>❌</span>
-                <span>Rejeição → Notificação com motivo</span>
-              </div>
-            </div>
-          </div>
+
 
           {/* LISTA DE SOLICITAÇÕES */}
           <div className="card">
