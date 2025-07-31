@@ -28,6 +28,7 @@ const formatMoney = (number) => {
 // Lista de administradores
 const ADMIN_UIDS = [
   'XgZ620lbRTQA6ELAvfqWBXKQGGJ3',
+  'W025u9s5SOWuHA0pQYF2UOzy6mG2',
 ];
 
 export default function AdminUsersPage() {
