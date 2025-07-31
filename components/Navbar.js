@@ -82,6 +82,14 @@ export default function Navbar() {
               {userData && (
                 <>
                   <Link
+                    href="/profile"
+                    className="btn btn-secondary flex items-center space-x-2 font-mono text-sm"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>PERFIL</span>
+                  </Link>
+                  
+                  <Link
                     href="/history"
                     className="btn btn-secondary flex items-center space-x-2 font-mono text-sm"
                   >
@@ -196,6 +204,15 @@ export default function Navbar() {
                     </div>
 
                     {/* NAVEGAÇÃO */}
+                    <Link
+                      href="/profile"
+                      onClick={closeMobileMenu}
+                      className="w-full btn btn-secondary flex items-center justify-center space-x-3 font-mono"
+                    >
+                      <Users className="h-5 w-5" />
+                      <span>MEU PERFIL</span>
+                    </Link>
+
                     <Link
                       href="/history"
                       onClick={closeMobileMenu}

@@ -310,13 +310,13 @@ export default function AdminUsersPage() {
                           USUÁRIO
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                          EMAIL
+                          CONTATO
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                          RIVAL REGIONS
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
                           SALDO
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                          CRIADO EM
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
                           AÇÕES
@@ -334,15 +334,44 @@ export default function AdminUsersPage() {
                                   {userItem.name || 'Sem nome'}
                                 </div>
                                 <div className="text-xs text-gray-400 font-mono">
+                                  {userItem.email || 'Sem email'}
+                                </div>
+                                <div className="text-xs text-gray-500 font-mono">
                                   ID: {userItem.id.substring(0, 8)}...
                                 </div>
                               </div>
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-gray-200 font-mono text-sm">
-                              {userItem.email || 'Sem email'}
+                            <div className="space-y-1">
+                              {userItem.telegramNumber && (
+                                <div className="text-xs text-gray-200 font-mono flex items-center space-x-1">
+                                  <span>📱</span>
+                                  <span>{userItem.telegramNumber}</span>
+                                </div>
+                              )}
+                              <div className="text-xs text-gray-400 font-mono">
+                                Criado: {userItem.createdAt?.seconds 
+                                  ? new Date(userItem.createdAt.seconds * 1000).toLocaleDateString('pt-BR')
+                                  : 'N/A'
+                                }
+                              </div>
                             </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {userItem.rivalRegionsLink ? (
+                              <a
+                                href={userItem.rivalRegionsLink.startsWith('http') ? userItem.rivalRegionsLink : `https://${userItem.rivalRegionsLink}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-400 hover:text-blue-300 font-mono text-sm flex items-center space-x-1"
+                              >
+                                <span>🎮</span>
+                                <span>Ver Perfil</span>
+                              </a>
+                            ) : (
+                              <span className="text-gray-500 font-mono text-sm">Não informado</span>
+                            )}
                           </td>
                           <td className="px-4 py-3">
                             {editingUser === userItem.id ? (
