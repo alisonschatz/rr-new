@@ -1,4 +1,4 @@
-// app/admin/deposits/page.js - VERSÃO COMPLETA COM NOTIFICAÇÕES TELEGRAM
+// app/admin/deposits/page.js - NAVEGAÇÃO CORRIGIDA
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -254,29 +254,26 @@ export default function AdminDepositsPage() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           
-          {/* CABEÇALHO */}
+          {/* CABEÇALHO - NAVEGAÇÃO CORRIGIDA */}
           <div className="mb-6 sm:mb-8">
             <div className="card">
-              <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <Link href="/dashboard" className="btn btn-secondary font-mono text-xs sm:text-sm">
-                    <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    VOLTAR
-                  </Link>
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
-                    <div>
-                      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono">
-                        PAINEL ADMIN
-                      </h1>
-                      <p className="text-gray-400 font-mono text-xs sm:text-sm">
-                        Gerenciar depósitos
-                      </p>
-                    </div>
+              <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-4">
+                <Link href="/admin" className="btn btn-secondary font-mono text-sm w-fit">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  VOLTAR AO PAINEL
+                </Link>
+                
+                <div className="flex items-start sm:items-center space-x-3">
+                  <DollarSign className="h-8 w-8 sm:h-8 sm:w-8 text-green-500 flex-shrink-0 mt-1 sm:mt-0" />
+                  <div>
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono leading-tight">
+                      GERENCIAR DEPÓSITOS
+                    </h1>
+                    <p className="text-gray-400 font-mono text-xs sm:text-sm mt-1">
+                      Aprovar e rejeitar solicitações
+                    </p>
                   </div>
                 </div>
-                
-
               </div>
             </div>
           </div>
@@ -349,8 +346,6 @@ export default function AdminDepositsPage() {
               </button>
             </div>
           </div>
-
-
 
           {/* LISTA DE SOLICITAÇÕES */}
           <div className="card">

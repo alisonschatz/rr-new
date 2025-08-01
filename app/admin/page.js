@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   Activity,
   Database,
-  BarChart3
+  BarChart3,
+  ArrowLeft
 } from 'lucide-react';
 
 // Lista de administradores
@@ -191,19 +192,31 @@ export default function AdminDashboard() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           
-          {/* CABEÇALHO */}
+          {/* CABEÇALHO - COM BOTÃO VOLTAR */}
           <div className="mb-8">
             <div className="card">
-              <div className="flex items-center space-x-4">
-                <Settings className="h-10 w-10 text-blue-500" />
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-200 font-mono">
-                    PAINEL ADMINISTRATIVO
-                  </h1>
-                  <p className="text-gray-400 font-mono">
-                    Central de gerenciamento do RR Exchange
-                  </p>
+              <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
+                
+                {/* PARTE PRINCIPAL - RESPONSIVA */}
+                <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-4">
+                  <Link href="/dashboard" className="btn btn-secondary font-mono text-sm w-fit">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    DASHBOARD
+                  </Link>
+                  
+                  <div className="flex items-start sm:items-center space-x-3 sm:space-x-4">
+                    <Settings className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 flex-shrink-0 mt-1 sm:mt-0" />
+                    <div>
+                      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono leading-tight">
+                        PAINEL ADMINISTRATIVO
+                      </h1>
+                      <p className="text-gray-400 font-mono text-xs sm:text-sm mt-1">
+                        Central de gerenciamento do RR Exchange
+                      </p>
+                    </div>
+                  </div>
                 </div>
+                
               </div>
             </div>
           </div>
@@ -265,11 +278,11 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* AÇÕES ADMINISTRATIVAS - LAYOUT CORRIGIDO */}
+          {/* AÇÕES ADMINISTRATIVAS - BOTÕES ALINHADOS */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             
             {/* DEPÓSITOS */}
-            <div className="card h-full">
+            <div className="card flex flex-col h-full">
               <div className="flex items-center space-x-3 mb-6">
                 <DollarSign className="h-8 w-8 text-yellow-500" />
                 <h2 className="text-xl font-bold text-gray-200 font-mono">
@@ -277,8 +290,8 @@ export default function AdminDashboard() {
                 </h2>
               </div>
               
-              <div className="flex flex-col h-full">
-                <div className="flex-1 space-y-4">
+              <div className="flex-1">
+                <div className="space-y-4">
                   <div className="bg-gray-750 border border-gray-600 p-4">
                     <div className="grid grid-cols-3 gap-4 text-center text-sm font-mono">
                       <div>
@@ -311,21 +324,20 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* BOTÃO ALINHADO NO FINAL */}
-                <div className="mt-6 pt-4 border-t border-gray-600">
-                  <Link
-                    href="/admin/deposits"
-                    className="w-full btn bg-yellow-600 hover:bg-yellow-500 text-white font-mono text-center block py-3"
-                  >
-                    GERENCIAR DEPÓSITOS
-                  </Link>
-                </div>
+              <div className="mt-6 pt-4 border-t border-gray-600">
+                <Link
+                  href="/admin/deposits"
+                  className="w-full btn bg-yellow-600 hover:bg-yellow-500 text-white font-mono text-center block py-3"
+                >
+                  GERENCIAR DEPÓSITOS
+                </Link>
               </div>
             </div>
 
             {/* VERIFICAÇÕES */}
-            <div className="card h-full">
+            <div className="card flex flex-col h-full">
               <div className="flex items-center space-x-3 mb-6">
                 <Shield className="h-8 w-8 text-blue-500" />
                 <h2 className="text-xl font-bold text-gray-200 font-mono">
@@ -333,8 +345,8 @@ export default function AdminDashboard() {
                 </h2>
               </div>
               
-              <div className="flex flex-col h-full">
-                <div className="flex-1 space-y-4">
+              <div className="flex-1">
+                <div className="space-y-4">
                   <div className="bg-gray-750 border border-gray-600 p-4">
                     <div className="grid grid-cols-3 gap-4 text-center text-sm font-mono">
                       <div>
@@ -357,22 +369,31 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* ESPAÇO EXTRA PARA EQUILIBRAR COM OUTROS CARDS */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm font-mono">
+                      <span className="text-gray-400">Status:</span>
+                      <span className="text-blue-400 font-bold">
+                        {stats.verifications.pending > 0 ? 'Pendências aguardando' : 'Tudo em dia'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                {/* BOTÃO ALINHADO NO FINAL */}
-                <div className="mt-6 pt-4 border-t border-gray-600">
-                  <Link
-                    href="/admin/verifications"
-                    className="w-full btn bg-blue-600 hover:bg-blue-500 text-white font-mono text-center block py-3"
-                  >
-                    GERENCIAR VERIFICAÇÕES
-                  </Link>
-                </div>
+              <div className="mt-6 pt-4 border-t border-gray-600">
+                <Link
+                  href="/admin/verifications"
+                  className="w-full btn bg-blue-600 hover:bg-blue-500 text-white font-mono text-center block py-3"
+                >
+                  GERENCIAR VERIFICAÇÕES
+                </Link>
               </div>
             </div>
 
             {/* USUÁRIOS */}
-            <div className="card h-full">
+            <div className="card flex flex-col h-full">
               <div className="flex items-center space-x-3 mb-6">
                 <Users className="h-8 w-8 text-green-500" />
                 <h2 className="text-xl font-bold text-gray-200 font-mono">
@@ -380,8 +401,8 @@ export default function AdminDashboard() {
                 </h2>
               </div>
               
-              <div className="flex flex-col h-full">
-                <div className="flex-1 space-y-4">
+              <div className="flex-1">
+                <div className="space-y-4">
                   <div className="bg-gray-750 border border-gray-600 p-4">
                     <div className="space-y-3 text-sm font-mono">
                       <div className="flex justify-between">
@@ -399,16 +420,15 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* BOTÃO ALINHADO NO FINAL */}
-                <div className="mt-6 pt-4 border-t border-gray-600">
-                  <Link
-                    href="/admin/users"
-                    className="w-full btn bg-green-600 hover:bg-green-500 text-white font-mono text-center block py-3"
-                  >
-                    GERENCIAR USUÁRIOS
-                  </Link>
-                </div>
+              <div className="mt-6 pt-4 border-t border-gray-600">
+                <Link
+                  href="/admin/users"
+                  className="w-full btn bg-green-600 hover:bg-green-500 text-white font-mono text-center block py-3"
+                >
+                  GERENCIAR USUÁRIOS
+                </Link>
               </div>
             </div>
           </div>

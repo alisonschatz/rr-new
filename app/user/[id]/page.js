@@ -1,24 +1,185 @@
-// app/user/[id]/page.js - VERSÃO CORRIGIDA PARA ACESSO PÚBLICO
+// app/user/[id]/page.js - ATUALIZADO COM TEMA CONSISTENTE E ELEMENTOS DISCRETOS
 'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { 
   ArrowLeft, 
   User, 
   MessageCircle, 
-  GamepadIcon, 
+  Gamepad2, 
   ExternalLink, 
   Share2, 
   Calendar,
-  Copy,
   AlertCircle,
-  Globe
+  Shield,
+  ShieldCheck,
+  Copy,
+  CheckCircle,
+  Home
 } from 'lucide-react';
 
+// Hook para verificação
+const useVerification = (userId) => {
+  const [status, setStatus] = useState({ isVerified: false, loading: true });
+
+  useEffect(() => {
+    if (!userId) {
+      setStatus({ isVerified: false, loading: false });
+      return;
+    }
+
+    const q = query(
+      collection(db, 'profile_verifications'),
+      where('userId', '==', userId),
+      where('status', '==', 'approved')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setStatus({
+        isVerified: !snapshot.empty,
+        loading: false
+      });
+    }, () => {
+      setStatus({ isVerified: false, loading: false });
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
+  return status;
+};
+
+// Componente Badge de Verificação - Discreto
+const VerificationBadge = ({ userId, size = 'normal' }) => {
+  const { isVerified, loading } = useVerification(userId);
+
+  if (loading) {
+    return (
+      <div className="inline-flex items-center space-x-1 bg-gray-700 px-2 py-1 text-xs font-mono">
+        <div className="w-3 h-3 bg-gray-600 animate-pulse"></div>
+        <span className="text-gray-400">...</span>
+      </div>
+    );
+  }
+
+  const sizeClasses = size === 'large' ? 'px-3 py-1 text-sm' : 'px-2 py-1 text-xs';
+
+  if (isVerified) {
+    return (
+      <div className={`inline-flex items-center space-x-1 bg-green-700 text-green-100 font-mono font-bold ${sizeClasses}`}>
+        <ShieldCheck className="h-3 w-3" />
+        <span>VERIFICADO</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`inline-flex items-center space-x-1 bg-gray-600 text-gray-300 font-mono ${sizeClasses}`}>
+      <Shield className="h-3 w-3" />
+      <span>NÃO VERIFICADO</span>
+    </div>
+  );
+};
+
+// Componente de Loading
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-gray-800 flex items-center justify-center">
+    <div className="text-center">
+      <div className="flex items-center space-x-2 text-gray-400 font-mono mb-4">
+        <div className="w-3 h-3 bg-gray-600 animate-pulse"></div>
+        <div className="w-3 h-3 bg-gray-600 animate-pulse"></div>
+        <div className="w-3 h-3 bg-gray-600 animate-pulse"></div>
+        <span className="tracking-wider">CARREGANDO PERFIL...</span>
+      </div>
+    </div>
+  </div>
+);
+
+// Componente de Erro
+const ErrorScreen = ({ error, onRetry }) => (
+  <div className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
+    <div className="max-w-md w-full">
+      <div className="card bg-red-900 border-red-600">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-700 mx-auto mb-6 flex items-center justify-center">
+            <AlertCircle className="h-8 w-8 text-red-300" />
+          </div>
+          
+          <h1 className="text-2xl font-bold text-red-300 font-mono mb-4 tracking-wider">
+            PERFIL INDISPONÍVEL
+          </h1>
+          
+          <p className="text-red-200 font-mono mb-6 text-sm tracking-wider">
+            {error}
+          </p>
+          
+          <div className="space-y-3">
+            <button
+              onClick={onRetry}
+              className="w-full btn btn-secondary font-mono tracking-wider"
+            >
+              TENTAR NOVAMENTE
+            </button>
+            
+            <Link
+              href="/"
+              className="w-full btn btn-primary font-mono tracking-wider flex items-center justify-center space-x-2"
+            >
+              <Home className="h-4 w-4" />
+              <span>VOLTAR AO INÍCIO</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Componente de Link de Contato - Tema Consistente
+const ContactCard = ({ icon: Icon, title, subtitle, href, available, buttonText }) => (
+  <div className="card hover:bg-gray-750 transition-colors">
+    <div className="text-center">
+      <div className={`w-12 h-12 mx-auto mb-4 flex items-center justify-center ${
+        available 
+          ? 'bg-blue-700 text-blue-100' 
+          : 'bg-gray-700 text-gray-400'
+      }`}>
+        <Icon className="h-6 w-6" />
+      </div>
+      
+      <h3 className="text-lg font-bold text-gray-200 font-mono tracking-wider mb-2">
+        {title}
+      </h3>
+      
+      <p className="text-gray-400 font-mono text-sm tracking-wider mb-4">
+        {subtitle}
+      </p>
+      
+      {available ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-primary font-mono tracking-wider flex items-center justify-center space-x-2"
+        >
+          <span>{buttonText}</span>
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      ) : (
+        <div className="btn btn-secondary cursor-not-allowed font-mono tracking-wider">
+          NÃO DISPONÍVEL
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+// Componente Principal
 export default function PublicProfilePage({ params }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,11 +187,7 @@ export default function PublicProfilePage({ params }) {
 
   const userId = params.id;
 
-  useEffect(() => {
-    loadUserProfile();
-  }, [userId]);
-
-  const loadUserProfile = async () => {
+  const loadProfile = async () => {
     if (!userId) {
       setError('ID do usuário não fornecido');
       setLoading(false);
@@ -38,30 +195,20 @@ export default function PublicProfilePage({ params }) {
     }
 
     try {
-      console.log('🔍 Tentando carregar perfil público para:', userId);
+      setLoading(true);
+      setError(null);
       
-      // Tentar carregar o documento do usuário
-      const userDocRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
+      const userDoc = await getDoc(doc(db, 'users', userId));
       
       if (!userDoc.exists()) {
-        console.log('❌ Usuário não encontrado:', userId);
         setError('Usuário não encontrado');
         setLoading(false);
         return;
       }
 
       const data = userDoc.data();
-      console.log('📊 Dados do usuário carregados:', { 
-        hasName: !!data.name, 
-        hasEmail: !!data.email,
-        hasRivalRegions: !!data.rivalRegionsLink,
-        hasTelegram: !!data.telegramNumber 
-      });
       
-      // Verificar se tem informações básicas para mostrar
       if (!data.name && !data.email) {
-        console.log('⚠️ Perfil sem informações suficientes');
         setError('Perfil não disponível publicamente');
         setLoading(false);
         return;
@@ -70,30 +217,24 @@ export default function PublicProfilePage({ params }) {
       setUserData(data);
       setLoading(false);
       
-    } catch (error) {
-      console.error('❌ Erro ao carregar perfil:', error);
-      
-      // Diferentes tipos de erro
-      if (error.code === 'permission-denied') {
-        setError('Perfil privado - acesso negado');
-      } else if (error.code === 'unavailable') {
-        setError('Serviço temporariamente indisponível');
-      } else {
-        setError('Erro ao carregar perfil');
-      }
-      
+    } catch (err) {
+      console.error('Erro ao carregar perfil:', err);
+      setError('Erro ao carregar perfil. Tente novamente.');
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadProfile();
+  }, [userId]);
+
   const handleShare = async () => {
     const url = window.location.href;
     const title = `Perfil de ${userData?.name || 'Usuário'} - RR Exchange`;
-    const text = `Confira o perfil de ${userData?.name || 'Usuário'} no RR Exchange`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title, text, url });
+        await navigator.share({ title, url });
         toast.success('PERFIL COMPARTILHADO!');
       } catch (err) {
         if (err.name !== 'AbortError') {
@@ -105,335 +246,172 @@ export default function PublicProfilePage({ params }) {
     }
   };
 
-  const copyToClipboard = (text) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
-        toast.success('LINK COPIADO!');
-      }).catch(() => {
-        toast.error('Erro ao copiar link');
-      });
-    } else {
-      // Fallback para navegadores antigos
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
       toast.success('LINK COPIADO!');
+    } catch (err) {
+      toast.error('ERRO AO COPIAR LINK');
     }
   };
 
   const formatDate = (timestamp) => {
-    if (!timestamp || !timestamp.seconds) return 'Data não disponível';
-    return new Date(timestamp.seconds * 1000).toLocaleDateString('pt-BR');
-  };
-
-  const formatDateTime = (timestamp) => {
-    if (!timestamp || !timestamp.seconds) return 'Data não disponível';
-    return new Date(timestamp.seconds * 1000).toLocaleString('pt-BR');
+    if (!timestamp?.seconds) return 'Data não disponível';
+    return new Date(timestamp.seconds * 1000).toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const getTelegramLink = (number) => {
-    if (!number) return '#';
+    if (!number) return null;
     const clean = number.replace(/\D/g, '');
     return `https://t.me/+${clean}`;
   };
 
   const getRivalRegionsLink = (link) => {
-    if (!link) return '#';
-    if (link.startsWith('http')) return link;
-    return `https://${link}`;
+    if (!link) return null;
+    return link.startsWith('http') ? link : `https://${link}`;
   };
 
   const isProfileComplete = () => {
-    return userData && userData.name && userData.rivalRegionsLink && userData.telegramNumber;
+    return userData?.name && userData?.rivalRegionsLink && userData?.telegramNumber;
   };
 
-  // Loading
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-3 h-3 bg-blue-500 animate-bounce"></div>
-            <div className="w-3 h-3 bg-blue-500 animate-bounce" style={{animationDelay: '0.1s'}}></div>
-            <div className="w-3 h-3 bg-blue-500 animate-bounce" style={{animationDelay: '0.2s'}}></div>
-          </div>
-          <p className="text-gray-400 font-mono">CARREGANDO PERFIL...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-800 flex items-center justify-center">
-        <div className="max-w-md w-full mx-4">
-          <div className="bg-gray-800 border border-red-600 p-8 text-center">
-            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-red-400 font-mono mb-4">
-              PERFIL INDISPONÍVEL
-            </h1>
-            <p className="text-gray-300 font-mono mb-6">
-              {error}
-            </p>
-            
-            <div className="space-y-4">
-              <div className="bg-yellow-900 border border-yellow-600 p-4 text-left">
-                <p className="text-yellow-200 font-mono text-sm">
-                  💡 <strong>Possíveis motivos:</strong>
-                </p>
-                <ul className="text-yellow-200 font-mono text-xs mt-2 space-y-1">
-                  <li>• Usuário configurou perfil como privado</li>
-                  <li>• Perfil ainda não foi completamente configurado</li>
-                  <li>• Link inválido ou usuário inexistente</li>
-                  <li>• Problema temporário de conectividade</li>
-                </ul>
-              </div>
-              
-              <Link 
-                href="/" 
-                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 font-mono font-bold transition-colors w-full justify-center"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>VOLTAR AO INÍCIO</span>
-              </Link>
-              
-              <button
-                onClick={loadUserProfile}
-                className="inline-flex items-center space-x-2 bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 font-mono font-bold transition-colors w-full justify-center"
-              >
-                <span>🔄</span>
-                <span>TENTAR NOVAMENTE</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen />;
+  if (error) return <ErrorScreen error={error} onRetry={loadProfile} />;
 
   return (
     <div className="min-h-screen bg-gray-800">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        
-        {/* HEADER */}
-        <div className="bg-gray-800 border border-gray-600 p-6 mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-            <div className="flex items-center space-x-4">
-              <Link 
-                href="/" 
-                className="inline-flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 font-mono transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>INÍCIO</span>
-              </Link>
-              <div className="flex items-center space-x-2">
-                <Globe className="h-6 w-6 text-blue-400" />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-200 font-mono">
-                    PERFIL PÚBLICO
-                  </h1>
-                  <p className="text-gray-400 font-mono text-sm">
-                    Informações do trader
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* Header - Tema Consistente */}
+      <div className="navbar">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/profile"
+              className="btn bg-green-600 hover:bg-green-500 text-white font-mono tracking-wider flex items-center space-x-2"
+            >
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">MEU PERFIL</span>
+            </Link>
             
             <button
               onClick={handleShare}
-              className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 font-mono transition-colors"
+              className="btn btn-primary font-mono tracking-wider flex items-center space-x-2"
             >
               <Share2 className="h-4 w-4" />
-              <span>COMPARTILHAR</span>
+              <span className="hidden sm:inline">COMPARTILHAR</span>
             </button>
           </div>
         </div>
+      </div>
 
-        {/* PROFILE CARD */}
-        <div className="bg-gray-800 border border-gray-600 p-8 mb-8">
-          
-          {/* USER INFO */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-600 text-white font-mono font-bold text-3xl mb-6">
-              {userData?.name ? userData.name.charAt(0).toUpperCase() : '?'}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        
+        {/* Profile Header - Tema Consistente */}
+        <div className="card mb-8">
+          <div className="text-center">
+            {/* Avatar */}
+            <div className="relative inline-block mb-6">
+              <div className="w-24 h-24 bg-blue-700 flex items-center justify-center text-3xl font-bold text-white font-mono">
+                {userData?.name ? userData.name.charAt(0).toUpperCase() : '?'}
+              </div>
             </div>
             
-            <div className="flex items-center justify-center space-x-3 mb-2">
-              <h2 className="text-3xl font-bold text-gray-200 font-mono">
-                {userData?.name || 'Nome não disponível'}
-              </h2>
-              {/* Badge de Verificação usando hook */}
-              <VerificationBadge userId={userId} />
+            {/* Nome e Badge Discreto */}
+            <h1 className="text-3xl font-bold text-gray-200 font-mono tracking-wider mb-3">
+              {userData?.name || 'USUÁRIO'}
+            </h1>
+            
+            {/* Badge de Verificação - Discreto */}
+            <div className="mb-4">
+              <VerificationBadge userId={userId} size="normal" />
             </div>
             
-            <div className="flex items-center justify-center space-x-2 text-gray-400 font-mono text-sm mb-4">
+            {/* Data de Cadastro */}
+            <div className="flex items-center justify-center space-x-2 text-gray-400 font-mono text-sm mb-6">
               <Calendar className="h-4 w-4" />
-              <span>Membro desde {formatDate(userData?.createdAt)}</span>
+              <span>MEMBRO DESDE {formatDate(userData?.createdAt).toUpperCase()}</span>
             </div>
 
-            {/* STATUS DO PERFIL */}
-            {isProfileComplete() ? (
-              <div className="inline-flex items-center space-x-2 bg-green-700 text-white px-4 py-2 font-mono text-sm">
-                <span>✓</span>
-                <span>PERFIL VERIFICADO</span>
-              </div>
-            ) : (
-              <div className="inline-flex items-center space-x-2 bg-yellow-700 text-white px-4 py-2 font-mono text-sm">
-                <span>⚠</span>
-                <span>PERFIL PARCIAL</span>
-              </div>
-            )}
-          </div>
-
-          {/* CONTACT LINKS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            
-            {/* RIVAL REGIONS */}
-            <div className="bg-gray-700 border border-gray-600 p-6 text-center">
-              <GamepadIcon className="h-12 w-12 text-green-400 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-gray-200 font-mono mb-2">
-                RIVAL REGIONS
-              </h3>
-              
-              {userData?.rivalRegionsLink ? (
-                <>
-                  <p className="text-gray-400 font-mono text-sm mb-4">
-                    Perfil verificado no jogo
-                  </p>
-                  <a
-                    href={getRivalRegionsLink(userData.rivalRegionsLink)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-500 text-white px-6 py-3 font-mono transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>VER NO JOGO</span>
-                  </a>
-                </>
-              ) : (
-                <p className="text-gray-500 font-mono text-sm">
-                  Link não disponível publicamente
-                </p>
-              )}
-            </div>
-
-            {/* TELEGRAM */}
-            <div className="bg-gray-700 border border-gray-600 p-6 text-center">
-              <MessageCircle className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-gray-200 font-mono mb-2">
-                TELEGRAM
-              </h3>
-              
-              {userData?.telegramNumber ? (
-                <>
-                  <p className="text-gray-400 font-mono text-sm mb-2">
-                    Contato direto disponível
-                  </p>
-                  <p className="text-gray-300 font-mono text-sm mb-4">
-                    {userData.telegramNumber}
-                  </p>
-                  <a
-                    href={getTelegramLink(userData.telegramNumber)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 font-mono transition-colors"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    <span>ABRIR CHAT</span>
-                  </a>
-                </>
-              ) : (
-                <p className="text-gray-500 font-mono text-sm">
-                  Contato não disponível publicamente
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* ADDITIONAL INFO */}
-          <div className="bg-gray-750 border border-gray-600 p-6">
-            <h3 className="text-lg font-bold text-gray-200 font-mono mb-4 flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span>INFORMAÇÕES DO TRADER</span>
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono">
-              <div>
-                <span className="text-gray-400 block">STATUS:</span>
-                <span className="text-green-400 font-bold">TRADER ATIVO</span>
-              </div>
-              
-              <div>
-                <span className="text-gray-400 block">PLATAFORMA:</span>
-                <span className="text-blue-400 font-bold">RR EXCHANGE</span>
-              </div>
-              
-              {userData?.lastProfileUpdate && (
-                <div className="md:col-span-2">
-                  <span className="text-gray-400 block">ÚLTIMA ATUALIZAÇÃO:</span>
-                  <span className="text-gray-300">{formatDateTime(userData.lastProfileUpdate)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* PROFILE COMPLETENESS */}
-          <div className="mt-6 pt-6 border-t border-gray-600">
-            <div className="flex items-center justify-center space-x-4 text-xs font-mono">
-              <div className={`flex items-center space-x-1 ${userData?.name ? 'text-green-400' : 'text-red-400'}`}>
-                <span>{userData?.name ? '✓' : '✗'}</span>
-                <span>NOME</span>
-              </div>
-              <div className={`flex items-center space-x-1 ${userData?.rivalRegionsLink ? 'text-green-400' : 'text-red-400'}`}>
-                <span>{userData?.rivalRegionsLink ? '✓' : '✗'}</span>
-                <span>RIVAL REGIONS</span>
-              </div>
-              <div className={`flex items-center space-x-1 ${userData?.telegramNumber ? 'text-green-400' : 'text-red-400'}`}>
-                <span>{userData?.telegramNumber ? '✓' : '✗'}</span>
-                <span>TELEGRAM</span>
-              </div>
+            {/* Status Badge - Discreto */}
+            <div className={`inline-flex items-center space-x-2 px-4 py-2 font-mono font-bold text-sm ${
+              isProfileComplete() 
+                ? 'bg-green-700 text-green-100' 
+                : 'bg-yellow-700 text-yellow-100'
+            }`}>
+              <CheckCircle className="h-4 w-4" />
+              <span>{isProfileComplete() ? 'PERFIL COMPLETO' : 'PERFIL PARCIAL'}</span>
             </div>
           </div>
         </div>
 
-        {/* ABOUT PLATFORM */}
-        <div className="bg-gray-700 border border-gray-600 p-8 text-center">
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold text-gray-200 font-mono mb-4">
-              🎮 RR EXCHANGE
-            </h3>
-            <p className="text-gray-400 font-mono mb-6">
-              Sistema de trading de recursos para jogadores de Rival Regions.<br/>
-              Negocie recursos valiosos com segurança e transparência.
-            </p>
-          </div>
+        {/* Contact Cards - Tema Consistente */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <ContactCard
+            icon={MessageCircle}
+            title="TELEGRAM"
+            subtitle={userData?.telegramNumber ? `${userData.telegramNumber}` : "Contato não disponível"}
+            href={getTelegramLink(userData?.telegramNumber)}
+            available={!!userData?.telegramNumber}
+            buttonText="ABRIR CHAT"
+          />
           
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 font-mono font-bold transition-colors"
-            >
-              <span>🚀</span>
-              <span>ACESSAR PLATAFORMA</span>
-            </Link>
+          <ContactCard
+            icon={Gamepad2}
+            title="RIVAL REGIONS"
+            subtitle={userData?.rivalRegionsLink ? "Perfil verificado no jogo" : "Perfil não disponível"}
+            href={getRivalRegionsLink(userData?.rivalRegionsLink)}
+            available={!!userData?.rivalRegionsLink}
+            buttonText="VER NO JOGO"
+          />
+        </div>
+
+
+
+        {/* Platform Info - Melhorado com Logo */}
+        <div className="card bg-blue-900 border-blue-600">
+          <div className="text-center">
+            {/* Logo do Site */}
+            <div className="mb-6">
+              <Image
+                src="/logo.png"
+                alt="RR Exchange"
+                width={80}
+                height={80}
+                className="mx-auto"
+              />
+            </div>
             
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center bg-gray-600 hover:bg-gray-500 text-white px-8 py-4 font-mono font-bold transition-colors"
-            >
-              FAZER LOGIN
-            </Link>
-          </div>
-          
-          <div className="mt-6 pt-6 border-t border-gray-600">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm font-mono text-gray-400">
-              <div>🔒 Login seguro com Google</div>
-              <div>⚡ Transações instantâneas</div>
-              <div>📊 Marketplace em tempo real</div>
+            <h2 className="text-4xl font-bold text-blue-100 font-mono tracking-wider mb-6">
+              RR EXCHANGE
+            </h2>
+            
+            <div className="max-w-4xl mx-auto mb-8">
+              <p className="text-blue-200 font-mono text-lg leading-relaxed tracking-wider mb-4">
+                SISTEMA DE TRADING DE RECURSOS PARA JOGADORES DE RIVAL REGIONS
+              </p>
+              <p className="text-blue-300 font-mono text-base leading-relaxed tracking-wider">
+                Negocie recursos valiosos com segurança e transparência no marketplace mais confiável da comunidade
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link
+                href="/login"
+                className="btn btn-success text-lg font-mono tracking-wider flex items-center justify-center space-x-3 py-4 px-8 hover:transform hover:scale-105 transition-all duration-200"
+              >
+                <span>🚀</span>
+                <span>ACESSAR PLATAFORMA</span>
+              </Link>
+              
+              <Link
+                href="/login"
+                className="btn btn-secondary text-lg font-mono tracking-wider py-4 px-8 hover:transform hover:scale-105 transition-all duration-200"
+              >
+                FAZER LOGIN
+              </Link>
             </div>
           </div>
         </div>

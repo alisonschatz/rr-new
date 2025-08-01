@@ -1,4 +1,4 @@
-// app/profile/page.js - Página de Perfil ATUALIZADA COM VERIFICAÇÃO
+// app/profile/page.js - Página de Perfil ATUALIZADA COM BOTÃO VER PERFIL PÚBLICO
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,7 +10,7 @@ import Navbar from '@/components/Navbar';
 import ProfileVerificationBadge from '@/components/ProfileVerificationBadge';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, User, Edit3, ExternalLink, MessageCircle, GamepadIcon, Shield } from 'lucide-react';
+import { ArrowLeft, Save, User, Edit3, ExternalLink, MessageCircle, GamepadIcon, Shield, Eye } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, userData } = useAuth();
@@ -158,35 +158,6 @@ export default function ProfilePage() {
     return link;
   };
 
-  const handleShareProfile = async () => {
-    const profileUrl = `${window.location.origin}/user/${user?.uid}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Perfil de ${userData?.name || 'Usuário'} - RR Exchange`,
-          text: `Confira o perfil de ${userData?.name || 'Usuário'} no RR Exchange`,
-          url: profileUrl
-        });
-        toast.success('PERFIL COMPARTILHADO!');
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          fallbackShare(profileUrl);
-        }
-      }
-    } else {
-      fallbackShare(profileUrl);
-    }
-  };
-
-  const fallbackShare = (url) => {
-    navigator.clipboard.writeText(url).then(() => {
-      toast.success('LINK DO PERFIL COPIADO!');
-    }).catch(() => {
-      toast.error('ERRO AO COPIAR LINK');
-    });
-  };
-
   // Verificar se o perfil está completo para verificação
   const isProfileCompleteForVerification = () => {
     return formData.name.trim() && 
@@ -219,7 +190,7 @@ export default function ProfilePage() {
                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono">
                           MEU PERFIL
                         </h1>
-                        {/* Badge de Verificação */}
+                        {/* Badge de Verificação Discreto */}
                         <ProfileVerificationBadge userData={userData} size="small" />
                       </div>
                       <p className="text-gray-400 font-mono text-xs sm:text-sm">
@@ -229,80 +200,63 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 
-                {/* BOTÃO COMPARTILHAR PERFIL */}
-                <button
-                  onClick={handleShareProfile}
+                {/* BOTÃO VER PERFIL PÚBLICO */}
+                <Link
+                  href={`/user/${user?.uid}`}
                   className="btn bg-purple-600 hover:bg-purple-500 text-white flex items-center space-x-2 font-mono text-sm"
                 >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>COMPARTILHAR PERFIL</span>
-                </button>
+                  <Eye className="h-4 w-4" />
+                  <span>VER PERFIL PÚBLICO</span>
+                </Link>
               </div>
             </div>
           </div>
 
-          {/* STATUS DE VERIFICAÇÃO */}
-          <div className="card mb-6 sm:mb-8 bg-gray-750">
-            <div className="flex items-center space-x-3 mb-4">
-              <Shield className="h-6 w-6 text-blue-400" />
-              <h2 className="text-lg font-bold text-gray-200 font-mono">
-                🛡️ STATUS DE VERIFICAÇÃO
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-800 border border-gray-600 p-4">
-                <h3 className="text-sm font-bold text-gray-300 font-mono mb-3">STATUS ATUAL:</h3>
-                <ProfileVerificationBadge userData={userData} size="normal" />
+          {/* STATUS DE VERIFICAÇÃO - Responsivo */}
+          <div className="card mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+              <div className="flex items-center space-x-3">
+                <Shield className="h-5 w-5 text-blue-400" />
+                <h2 className="text-base font-bold text-gray-200 font-mono">
+                  STATUS DE VERIFICAÇÃO
+                </h2>
               </div>
               
-              <div className="bg-gray-800 border border-gray-600 p-4">
-                <h3 className="text-sm font-bold text-gray-300 font-mono mb-3">REQUISITOS:</h3>
-                <div className="space-y-2 text-xs font-mono">
-                  <div className={`flex items-center space-x-2 ${formData.name.trim() ? 'text-green-400' : 'text-red-400'}`}>
-                    <span>{formData.name.trim() ? '✓' : '✗'}</span>
-                    <span>Nome preenchido</span>
-                  </div>
-                  <div className={`flex items-center space-x-2 ${validateRivalRegionsLink(formData.rivalRegionsLink) ? 'text-green-400' : 'text-red-400'}`}>
-                    <span>{validateRivalRegionsLink(formData.rivalRegionsLink) ? '✓' : '✗'}</span>
-                    <span>Link Rival Regions válido</span>
-                  </div>
-                  <div className={`flex items-center space-x-2 ${validateTelegramNumber(formData.telegramNumber) ? 'text-green-400' : 'text-red-400'}`}>
-                    <span>{validateTelegramNumber(formData.telegramNumber) ? '✓' : '✗'}</span>
-                    <span>Número Telegram válido</span>
-                  </div>
-                </div>
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <ProfileVerificationBadge userData={userData} size="normal" />
                 
                 {isProfileCompleteForVerification() && (
-                  <div className="mt-3 p-2 bg-green-900 border border-green-600">
-                    <p className="text-green-200 font-mono text-xs">
-                      ✅ Perfil elegível para verificação!
-                    </p>
+                  <div className="text-xs text-green-400 font-mono">
+                    ✅ Elegível para verificação
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* INFORMAÇÕES ATUAIS */}
-          <div className="card mb-6 sm:mb-8 bg-gray-750">
-            <h2 className="text-lg font-bold text-gray-200 font-mono mb-4">
-              📊 INFORMAÇÕES ATUAIS
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono">
-              <div className="bg-gray-800 border border-gray-600 p-3">
-                <span className="text-gray-400 block mb-1">EMAIL:</span>
-                <span className="text-gray-200">{userData?.email || 'N/A'}</span>
-                <div className="text-xs text-gray-500 mt-1">Não pode ser alterado</div>
+          {/* INFORMAÇÕES ATUAIS - Responsivo */}
+          <div className="card mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+              <div className="flex items-center space-x-3">
+                <h2 className="text-base font-bold text-gray-200 font-mono">
+                  📊 INFORMAÇÕES ATUAIS
+                </h2>
               </div>
-              <div className="bg-gray-800 border border-gray-600 p-3">
-                <span className="text-gray-400 block mb-1">MEMBRO DESDE:</span>
-                <span className="text-gray-200">
-                  {userData?.createdAt?.seconds 
-                    ? new Date(userData.createdAt.seconds * 1000).toLocaleDateString('pt-BR')
-                    : 'N/A'
-                  }
-                </span>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm font-mono">
+                <div className="flex flex-col sm:flex-row sm:items-center">
+                  <span className="text-gray-400">EMAIL:</span>
+                  <span className="text-gray-200 sm:ml-2 truncate max-w-xs">{userData?.email || 'N/A'}</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center">
+                  <span className="text-gray-400">MEMBRO DESDE:</span>
+                  <span className="text-gray-200 sm:ml-2">
+                    {userData?.createdAt?.seconds 
+                      ? new Date(userData.createdAt.seconds * 1000).toLocaleDateString('pt-BR')
+                      : 'N/A'
+                    }
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -356,11 +310,8 @@ export default function ProfilePage() {
                   required
                   disabled={loading}
                 />
-                <div className="text-xs text-gray-500 font-mono mt-1 space-y-1">
-                  <p>• <strong>Formato obrigatório:</strong> https://m.rivalregions.com/#slide/profile/SEU_ID</p>
-                  <p>• Exemplo: https://m.rivalregions.com/#slide/profile/2001258303</p>
-                  <p>• Acesse seu perfil no jogo pelo celular e copie a URL</p>
-                  <p>• <strong>CAMPO OBRIGATÓRIO PARA VERIFICAÇÃO</strong></p>
+                <div className="text-xs text-gray-500 font-mono mt-1">
+                  Formato: https://m.rivalregions.com/#slide/profile/SEU_ID
                 </div>
                 
                 {/* PREVIEW DO LINK */}
@@ -384,7 +335,7 @@ export default function ProfilePage() {
                 {formData.rivalRegionsLink && !validateRivalRegionsLink(formData.rivalRegionsLink) && (
                   <div className="mt-2 p-2 bg-red-900 border border-red-600">
                     <div className="text-red-200 text-xs font-mono">
-                      ❌ Link inválido - use o formato: https://m.rivalregions.com/#slide/profile/SEU_ID
+                      ❌ Link inválido
                     </div>
                   </div>
                 )}
@@ -407,10 +358,8 @@ export default function ProfilePage() {
                   disabled={loading}
                   maxLength={20}
                 />
-                <div className="text-xs text-gray-500 font-mono mt-1 space-y-1">
-                  <p>• <strong>Formato:</strong> +55 (11) 99999-9999</p>
-                  <p>• Será usado para contato em caso de necessidade</p>
-                  <p>• <strong>CAMPO OBRIGATÓRIO PARA VERIFICAÇÃO</strong></p>
+                <div className="text-xs text-gray-500 font-mono mt-1">
+                  Formato: +55 (11) 99999-9999
                 </div>
                 
                 {/* VALIDAÇÃO DO TELEGRAM */}
@@ -425,24 +374,17 @@ export default function ProfilePage() {
                 {formData.telegramNumber && !validateTelegramNumber(formData.telegramNumber) && (
                   <div className="mt-2 p-2 bg-red-900 border border-red-600">
                     <div className="text-red-200 text-xs font-mono">
-                      ❌ Número inválido - deve ter entre 10 e 15 dígitos
+                      ❌ Número inválido
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* INFORMAÇÕES IMPORTANTES SOBRE VERIFICAÇÃO */}
+              {/* INFORMAÇÕES SOBRE VERIFICAÇÃO - Simplificada */}
               <div className="bg-blue-900 border border-blue-600 p-4">
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-400 mt-1">🛡️</span>
-                  <div className="text-blue-200 font-mono text-xs space-y-2">
-                    <p><strong>Sistema de Verificação:</strong></p>
-                    <p>• Complete todos os campos obrigatórios</p>
-                    <p>• Clique em "SOLICITAR VERIFICAÇÃO" após salvar</p>
-                    <p>• Admin verificará seus dados manualmente</p>
-                    <p>• Receba o selo de verificação após aprovação</p>
-                    <p>• Perfis verificados têm mais credibilidade no marketplace</p>
-                  </div>
+                <div className="flex items-center space-x-2 text-blue-200 font-mono text-sm">
+                  <span className="text-blue-400">🛡️</span>
+                  <span>Complete todos os campos para solicitar verificação após salvar</span>
                 </div>
               </div>
 
