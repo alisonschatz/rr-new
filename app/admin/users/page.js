@@ -1,4 +1,4 @@
-// app/admin/users/page.js - Gerenciar Usuários
+// app/admin/users/page.js - NAVEGAÇÃO CORRIGIDA
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -204,14 +204,15 @@ export default function AdminUsersPage() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           
-          {/* CABEÇALHO */}
+          {/* CABEÇALHO - NAVEGAÇÃO CORRIGIDA */}
           <div className="mb-6 sm:mb-8">
             <div className="card">
               <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
                 <div className="flex items-center space-x-3 sm:space-x-4">
-                  <Link href="/admin/deposits" className="btn btn-secondary font-mono text-xs sm:text-sm">
+                  {/* BOTÃO VOLTAR CORRIGIDO - AGORA VAI PARA /admin */}
+                  <Link href="/admin" className="btn btn-secondary font-mono text-xs sm:text-sm">
                     <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    VOLTAR
+                    VOLTAR AO PAINEL
                   </Link>
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
@@ -319,7 +320,10 @@ export default function AdminUsersPage() {
                           SALDO
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                          AÇÕES
+                          CRIADO EM
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                          STATUS
                         </th>
                       </tr>
                     </thead>

@@ -1,4 +1,4 @@
-// app/admin/page.js - PAINEL ADMINISTRATIVO CENTRALIZADO
+// app/admin/page.js - PAINEL ADMINISTRATIVO CORRIGIDO
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -265,11 +265,11 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* AÇÕES ADMINISTRATIVAS */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* AÇÕES ADMINISTRATIVAS - LAYOUT CORRIGIDO */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             
             {/* DEPÓSITOS */}
-            <div className="card">
+            <div className="card h-full">
               <div className="flex items-center space-x-3 mb-6">
                 <DollarSign className="h-8 w-8 text-yellow-500" />
                 <h2 className="text-xl font-bold text-gray-200 font-mono">
@@ -277,50 +277,55 @@ export default function AdminDashboard() {
                 </h2>
               </div>
               
-              <div className="space-y-4">
-                <div className="bg-gray-750 border border-gray-600 p-4">
-                  <div className="grid grid-cols-3 gap-4 text-center text-sm font-mono">
-                    <div>
-                      <div className="text-xl font-bold text-yellow-400">
-                        {stats.deposits.pending}
+              <div className="flex flex-col h-full">
+                <div className="flex-1 space-y-4">
+                  <div className="bg-gray-750 border border-gray-600 p-4">
+                    <div className="grid grid-cols-3 gap-4 text-center text-sm font-mono">
+                      <div>
+                        <div className="text-xl font-bold text-yellow-400">
+                          {stats.deposits.pending}
+                        </div>
+                        <div className="text-gray-400 text-xs">PENDENTES</div>
                       </div>
-                      <div className="text-gray-400 text-xs">PENDENTES</div>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-green-400">
-                        {stats.deposits.approved}
+                      <div>
+                        <div className="text-xl font-bold text-green-400">
+                          {stats.deposits.approved}
+                        </div>
+                        <div className="text-gray-400 text-xs">APROVADOS</div>
                       </div>
-                      <div className="text-gray-400 text-xs">APROVADOS</div>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-red-400">
-                        {stats.deposits.rejected}
+                      <div>
+                        <div className="text-xl font-bold text-red-400">
+                          {stats.deposits.rejected}
+                        </div>
+                        <div className="text-gray-400 text-xs">REJEITADOS</div>
                       </div>
-                      <div className="text-gray-400 text-xs">REJEITADOS</div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm font-mono">
-                    <span className="text-gray-400">Valor Pendente:</span>
-                    <span className="text-yellow-400 font-bold">
-                      ${formatMoney(stats.deposits.totalValue)}
-                    </span>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm font-mono">
+                      <span className="text-gray-400">Valor Pendente:</span>
+                      <span className="text-yellow-400 font-bold">
+                        ${formatMoney(stats.deposits.totalValue)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <Link
-                  href="/admin/deposits"
-                  className="w-full btn bg-yellow-600 hover:bg-yellow-500 text-white font-mono text-center block"
-                >
-                  GERENCIAR DEPÓSITOS
-                </Link>
+                {/* BOTÃO ALINHADO NO FINAL */}
+                <div className="mt-6 pt-4 border-t border-gray-600">
+                  <Link
+                    href="/admin/deposits"
+                    className="w-full btn bg-yellow-600 hover:bg-yellow-500 text-white font-mono text-center block py-3"
+                  >
+                    GERENCIAR DEPÓSITOS
+                  </Link>
+                </div>
               </div>
             </div>
 
             {/* VERIFICAÇÕES */}
-            <div className="card">
+            <div className="card h-full">
               <div className="flex items-center space-x-3 mb-6">
                 <Shield className="h-8 w-8 text-blue-500" />
                 <h2 className="text-xl font-bold text-gray-200 font-mono">
@@ -328,41 +333,46 @@ export default function AdminDashboard() {
                 </h2>
               </div>
               
-              <div className="space-y-4">
-                <div className="bg-gray-750 border border-gray-600 p-4">
-                  <div className="grid grid-cols-3 gap-4 text-center text-sm font-mono">
-                    <div>
-                      <div className="text-xl font-bold text-yellow-400">
-                        {stats.verifications.pending}
+              <div className="flex flex-col h-full">
+                <div className="flex-1 space-y-4">
+                  <div className="bg-gray-750 border border-gray-600 p-4">
+                    <div className="grid grid-cols-3 gap-4 text-center text-sm font-mono">
+                      <div>
+                        <div className="text-xl font-bold text-yellow-400">
+                          {stats.verifications.pending}
+                        </div>
+                        <div className="text-gray-400 text-xs">PENDENTES</div>
                       </div>
-                      <div className="text-gray-400 text-xs">PENDENTES</div>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-green-400">
-                        {stats.verifications.approved}
+                      <div>
+                        <div className="text-xl font-bold text-green-400">
+                          {stats.verifications.approved}
+                        </div>
+                        <div className="text-gray-400 text-xs">APROVADAS</div>
                       </div>
-                      <div className="text-gray-400 text-xs">APROVADAS</div>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-red-400">
-                        {stats.verifications.rejected}
+                      <div>
+                        <div className="text-xl font-bold text-red-400">
+                          {stats.verifications.rejected}
+                        </div>
+                        <div className="text-gray-400 text-xs">REJEITADAS</div>
                       </div>
-                      <div className="text-gray-400 text-xs">REJEITADAS</div>
                     </div>
                   </div>
                 </div>
 
-                <Link
-                  href="/admin/verifications"
-                  className="w-full btn bg-blue-600 hover:bg-blue-500 text-white font-mono text-center block"
-                >
-                  GERENCIAR VERIFICAÇÕES
-                </Link>
+                {/* BOTÃO ALINHADO NO FINAL */}
+                <div className="mt-6 pt-4 border-t border-gray-600">
+                  <Link
+                    href="/admin/verifications"
+                    className="w-full btn bg-blue-600 hover:bg-blue-500 text-white font-mono text-center block py-3"
+                  >
+                    GERENCIAR VERIFICAÇÕES
+                  </Link>
+                </div>
               </div>
             </div>
 
             {/* USUÁRIOS */}
-            <div className="card">
+            <div className="card h-full">
               <div className="flex items-center space-x-3 mb-6">
                 <Users className="h-8 w-8 text-green-500" />
                 <h2 className="text-xl font-bold text-gray-200 font-mono">
@@ -370,30 +380,35 @@ export default function AdminDashboard() {
                 </h2>
               </div>
               
-              <div className="space-y-4">
-                <div className="bg-gray-750 border border-gray-600 p-4">
-                  <div className="space-y-3 text-sm font-mono">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Total:</span>
-                      <span className="text-green-400 font-bold">{stats.users.total}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Com Perfil Completo:</span>
-                      <span className="text-blue-400 font-bold">{stats.users.withProfile}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Novos (24h):</span>
-                      <span className="text-purple-400 font-bold">{stats.users.new24h}</span>
+              <div className="flex flex-col h-full">
+                <div className="flex-1 space-y-4">
+                  <div className="bg-gray-750 border border-gray-600 p-4">
+                    <div className="space-y-3 text-sm font-mono">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total:</span>
+                        <span className="text-green-400 font-bold">{stats.users.total}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Com Perfil Completo:</span>
+                        <span className="text-blue-400 font-bold">{stats.users.withProfile}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Novos (24h):</span>
+                        <span className="text-purple-400 font-bold">{stats.users.new24h}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <Link
-                  href="/admin/users"
-                  className="w-full btn bg-green-600 hover:bg-green-500 text-white font-mono text-center block"
-                >
-                  GERENCIAR USUÁRIOS
-                </Link>
+                {/* BOTÃO ALINHADO NO FINAL */}
+                <div className="mt-6 pt-4 border-t border-gray-600">
+                  <Link
+                    href="/admin/users"
+                    className="w-full btn bg-green-600 hover:bg-green-500 text-white font-mono text-center block py-3"
+                  >
+                    GERENCIAR USUÁRIOS
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
