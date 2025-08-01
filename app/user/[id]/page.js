@@ -1,4 +1,4 @@
-// app/user/[id]/page.js - REESCRITA COMPLETA
+// app/user/[id]/page.js - VERSÃO CORRIGIDA PARA ACESSO PÚBLICO
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,7 +15,8 @@ import {
   Share2, 
   Calendar,
   Copy,
-  AlertCircle
+  AlertCircle,
+  Globe
 } from 'lucide-react';
 
 export default function PublicProfilePage({ params }) {
@@ -37,19 +38,31 @@ export default function PublicProfilePage({ params }) {
     }
 
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
+      console.log('🔍 Tentando carregar perfil público para:', userId);
+      
+      // Tentar carregar o documento do usuário
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
+        console.log('❌ Usuário não encontrado:', userId);
         setError('Usuário não encontrado');
         setLoading(false);
         return;
       }
 
       const data = userDoc.data();
+      console.log('📊 Dados do usuário carregados:', { 
+        hasName: !!data.name, 
+        hasEmail: !!data.email,
+        hasRivalRegions: !!data.rivalRegionsLink,
+        hasTelegram: !!data.telegramNumber 
+      });
       
-      // Verificar se tem informações mínimas
-      if (!data.name) {
-        setError('Perfil não disponível');
+      // Verificar se tem informações básicas para mostrar
+      if (!data.name && !data.email) {
+        console.log('⚠️ Perfil sem informações suficientes');
+        setError('Perfil não disponível publicamente');
         setLoading(false);
         return;
       }
@@ -58,8 +71,17 @@ export default function PublicProfilePage({ params }) {
       setLoading(false);
       
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
-      setError('Erro ao carregar perfil');
+      console.error('❌ Erro ao carregar perfil:', error);
+      
+      // Diferentes tipos de erro
+      if (error.code === 'permission-denied') {
+        setError('Perfil privado - acesso negado');
+      } else if (error.code === 'unavailable') {
+        setError('Serviço temporariamente indisponível');
+      } else {
+        setError('Erro ao carregar perfil');
+      }
+      
       setLoading(false);
     }
   };
@@ -152,18 +174,41 @@ export default function PublicProfilePage({ params }) {
           <div className="bg-gray-800 border border-red-600 p-8 text-center">
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-red-400 font-mono mb-4">
-              ERRO
+              PERFIL INDISPONÍVEL
             </h1>
             <p className="text-gray-300 font-mono mb-6">
               {error}
             </p>
-            <Link 
-              href="/" 
-              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 font-mono font-bold transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>VOLTAR AO INÍCIO</span>
-            </Link>
+            
+            <div className="space-y-4">
+              <div className="bg-yellow-900 border border-yellow-600 p-4 text-left">
+                <p className="text-yellow-200 font-mono text-sm">
+                  💡 <strong>Possíveis motivos:</strong>
+                </p>
+                <ul className="text-yellow-200 font-mono text-xs mt-2 space-y-1">
+                  <li>• Usuário configurou perfil como privado</li>
+                  <li>• Perfil ainda não foi completamente configurado</li>
+                  <li>• Link inválido ou usuário inexistente</li>
+                  <li>• Problema temporário de conectividade</li>
+                </ul>
+              </div>
+              
+              <Link 
+                href="/" 
+                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 font-mono font-bold transition-colors w-full justify-center"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>VOLTAR AO INÍCIO</span>
+              </Link>
+              
+              <button
+                onClick={loadUserProfile}
+                className="inline-flex items-center space-x-2 bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 font-mono font-bold transition-colors w-full justify-center"
+              >
+                <span>🔄</span>
+                <span>TENTAR NOVAMENTE</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -185,13 +230,16 @@ export default function PublicProfilePage({ params }) {
                 <ArrowLeft className="h-4 w-4" />
                 <span>INÍCIO</span>
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-200 font-mono">
-                  PERFIL PÚBLICO
-                </h1>
-                <p className="text-gray-400 font-mono text-sm">
-                  Informações do usuário
-                </p>
+              <div className="flex items-center space-x-2">
+                <Globe className="h-6 w-6 text-blue-400" />
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-200 font-mono">
+                    PERFIL PÚBLICO
+                  </h1>
+                  <p className="text-gray-400 font-mono text-sm">
+                    Informações do trader
+                  </p>
+                </div>
               </div>
             </div>
             
@@ -211,28 +259,28 @@ export default function PublicProfilePage({ params }) {
           {/* USER INFO */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-600 text-white font-mono font-bold text-3xl mb-6">
-              {userData.name ? userData.name.charAt(0).toUpperCase() : '?'}
+              {userData?.name ? userData.name.charAt(0).toUpperCase() : '?'}
             </div>
             
             <h2 className="text-3xl font-bold text-gray-200 font-mono mb-2">
-              {userData.name || 'Nome não informado'}
+              {userData?.name || 'Nome não disponível'}
             </h2>
             
             <div className="flex items-center justify-center space-x-2 text-gray-400 font-mono text-sm mb-4">
               <Calendar className="h-4 w-4" />
-              <span>Membro desde {formatDate(userData.createdAt)}</span>
+              <span>Membro desde {formatDate(userData?.createdAt)}</span>
             </div>
 
             {/* STATUS DO PERFIL */}
             {isProfileComplete() ? (
               <div className="inline-flex items-center space-x-2 bg-green-700 text-white px-4 py-2 font-mono text-sm">
                 <span>✓</span>
-                <span>PERFIL COMPLETO</span>
+                <span>PERFIL VERIFICADO</span>
               </div>
             ) : (
               <div className="inline-flex items-center space-x-2 bg-yellow-700 text-white px-4 py-2 font-mono text-sm">
                 <span>⚠</span>
-                <span>PERFIL INCOMPLETO</span>
+                <span>PERFIL PARCIAL</span>
               </div>
             )}
           </div>
@@ -247,10 +295,10 @@ export default function PublicProfilePage({ params }) {
                 RIVAL REGIONS
               </h3>
               
-              {userData.rivalRegionsLink ? (
+              {userData?.rivalRegionsLink ? (
                 <>
                   <p className="text-gray-400 font-mono text-sm mb-4">
-                    Perfil no jogo
+                    Perfil verificado no jogo
                   </p>
                   <a
                     href={getRivalRegionsLink(userData.rivalRegionsLink)}
@@ -259,12 +307,12 @@ export default function PublicProfilePage({ params }) {
                     className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-500 text-white px-6 py-3 font-mono transition-colors"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    <span>VER PERFIL</span>
+                    <span>VER NO JOGO</span>
                   </a>
                 </>
               ) : (
                 <p className="text-gray-500 font-mono text-sm">
-                  Link não informado
+                  Link não disponível publicamente
                 </p>
               )}
             </div>
@@ -276,10 +324,10 @@ export default function PublicProfilePage({ params }) {
                 TELEGRAM
               </h3>
               
-              {userData.telegramNumber ? (
+              {userData?.telegramNumber ? (
                 <>
                   <p className="text-gray-400 font-mono text-sm mb-2">
-                    Contato direto
+                    Contato direto disponível
                   </p>
                   <p className="text-gray-300 font-mono text-sm mb-4">
                     {userData.telegramNumber}
@@ -296,20 +344,56 @@ export default function PublicProfilePage({ params }) {
                 </>
               ) : (
                 <p className="text-gray-500 font-mono text-sm">
-                  Número não informado
+                  Contato não disponível publicamente
                 </p>
               )}
             </div>
           </div>
 
-          {/* PROFILE UPDATE INFO */}
-          {userData.lastProfileUpdate && (
-            <div className="text-center pt-6 border-t border-gray-600">
-              <p className="text-gray-500 font-mono text-xs">
-                Última atualização: {formatDateTime(userData.lastProfileUpdate)}
-              </p>
+          {/* ADDITIONAL INFO */}
+          <div className="bg-gray-750 border border-gray-600 p-6">
+            <h3 className="text-lg font-bold text-gray-200 font-mono mb-4 flex items-center space-x-2">
+              <User className="h-5 w-5" />
+              <span>INFORMAÇÕES DO TRADER</span>
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono">
+              <div>
+                <span className="text-gray-400 block">STATUS:</span>
+                <span className="text-green-400 font-bold">TRADER ATIVO</span>
+              </div>
+              
+              <div>
+                <span className="text-gray-400 block">PLATAFORMA:</span>
+                <span className="text-blue-400 font-bold">RR EXCHANGE</span>
+              </div>
+              
+              {userData?.lastProfileUpdate && (
+                <div className="md:col-span-2">
+                  <span className="text-gray-400 block">ÚLTIMA ATUALIZAÇÃO:</span>
+                  <span className="text-gray-300">{formatDateTime(userData.lastProfileUpdate)}</span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* PROFILE COMPLETENESS */}
+          <div className="mt-6 pt-6 border-t border-gray-600">
+            <div className="flex items-center justify-center space-x-4 text-xs font-mono">
+              <div className={`flex items-center space-x-1 ${userData?.name ? 'text-green-400' : 'text-red-400'}`}>
+                <span>{userData?.name ? '✓' : '✗'}</span>
+                <span>NOME</span>
+              </div>
+              <div className={`flex items-center space-x-1 ${userData?.rivalRegionsLink ? 'text-green-400' : 'text-red-400'}`}>
+                <span>{userData?.rivalRegionsLink ? '✓' : '✗'}</span>
+                <span>RIVAL REGIONS</span>
+              </div>
+              <div className={`flex items-center space-x-1 ${userData?.telegramNumber ? 'text-green-400' : 'text-red-400'}`}>
+                <span>{userData?.telegramNumber ? '✓' : '✗'}</span>
+                <span>TELEGRAM</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ABOUT PLATFORM */}
