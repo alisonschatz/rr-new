@@ -1,4 +1,4 @@
-// app/profile/page.js - Página de Perfil do Usuário
+// app/profile/page.js - Página de Perfil ATUALIZADA COM VERIFICAÇÃO
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,9 +7,10 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
+import ProfileVerificationBadge from '@/components/ProfileVerificationBadge';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, User, Edit3, ExternalLink, MessageCircle, GamepadIcon } from 'lucide-react';
+import { ArrowLeft, Save, User, Edit3, ExternalLink, MessageCircle, GamepadIcon, Shield } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, userData } = useAuth();
@@ -186,6 +187,15 @@ export default function ProfilePage() {
     });
   };
 
+  // Verificar se o perfil está completo para verificação
+  const isProfileCompleteForVerification = () => {
+    return formData.name.trim() && 
+           formData.rivalRegionsLink.trim() && 
+           formData.telegramNumber.trim() &&
+           validateRivalRegionsLink(formData.rivalRegionsLink) &&
+           validateTelegramNumber(formData.telegramNumber);
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen">
@@ -205,9 +215,13 @@ export default function ProfilePage() {
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <User className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
                     <div>
-                      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono">
-                        MEU PERFIL
-                      </h1>
+                      <div className="flex items-center space-x-2">
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono">
+                          MEU PERFIL
+                        </h1>
+                        {/* Badge de Verificação */}
+                        <ProfileVerificationBadge userData={userData} size="small" />
+                      </div>
                       <p className="text-gray-400 font-mono text-xs sm:text-sm">
                         Editar informações pessoais
                       </p>
@@ -223,6 +237,49 @@ export default function ProfilePage() {
                   <ExternalLink className="h-4 w-4" />
                   <span>COMPARTILHAR PERFIL</span>
                 </button>
+              </div>
+            </div>
+          </div>
+
+          {/* STATUS DE VERIFICAÇÃO */}
+          <div className="card mb-6 sm:mb-8 bg-gray-750">
+            <div className="flex items-center space-x-3 mb-4">
+              <Shield className="h-6 w-6 text-blue-400" />
+              <h2 className="text-lg font-bold text-gray-200 font-mono">
+                🛡️ STATUS DE VERIFICAÇÃO
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-800 border border-gray-600 p-4">
+                <h3 className="text-sm font-bold text-gray-300 font-mono mb-3">STATUS ATUAL:</h3>
+                <ProfileVerificationBadge userData={userData} size="normal" />
+              </div>
+              
+              <div className="bg-gray-800 border border-gray-600 p-4">
+                <h3 className="text-sm font-bold text-gray-300 font-mono mb-3">REQUISITOS:</h3>
+                <div className="space-y-2 text-xs font-mono">
+                  <div className={`flex items-center space-x-2 ${formData.name.trim() ? 'text-green-400' : 'text-red-400'}`}>
+                    <span>{formData.name.trim() ? '✓' : '✗'}</span>
+                    <span>Nome preenchido</span>
+                  </div>
+                  <div className={`flex items-center space-x-2 ${validateRivalRegionsLink(formData.rivalRegionsLink) ? 'text-green-400' : 'text-red-400'}`}>
+                    <span>{validateRivalRegionsLink(formData.rivalRegionsLink) ? '✓' : '✗'}</span>
+                    <span>Link Rival Regions válido</span>
+                  </div>
+                  <div className={`flex items-center space-x-2 ${validateTelegramNumber(formData.telegramNumber) ? 'text-green-400' : 'text-red-400'}`}>
+                    <span>{validateTelegramNumber(formData.telegramNumber) ? '✓' : '✗'}</span>
+                    <span>Número Telegram válido</span>
+                  </div>
+                </div>
+                
+                {isProfileCompleteForVerification() && (
+                  <div className="mt-3 p-2 bg-green-900 border border-green-600">
+                    <p className="text-green-200 font-mono text-xs">
+                      ✅ Perfil elegível para verificação!
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -303,7 +360,7 @@ export default function ProfilePage() {
                   <p>• <strong>Formato obrigatório:</strong> https://m.rivalregions.com/#slide/profile/SEU_ID</p>
                   <p>• Exemplo: https://m.rivalregions.com/#slide/profile/2001258303</p>
                   <p>• Acesse seu perfil no jogo pelo celular e copie a URL</p>
-                  <p>• <strong>CAMPO OBRIGATÓRIO</strong></p>
+                  <p>• <strong>CAMPO OBRIGATÓRIO PARA VERIFICAÇÃO</strong></p>
                 </div>
                 
                 {/* PREVIEW DO LINK */}
@@ -353,7 +410,7 @@ export default function ProfilePage() {
                 <div className="text-xs text-gray-500 font-mono mt-1 space-y-1">
                   <p>• <strong>Formato:</strong> +55 (11) 99999-9999</p>
                   <p>• Será usado para contato em caso de necessidade</p>
-                  <p>• <strong>CAMPO OBRIGATÓRIO</strong></p>
+                  <p>• <strong>CAMPO OBRIGATÓRIO PARA VERIFICAÇÃO</strong></p>
                 </div>
                 
                 {/* VALIDAÇÃO DO TELEGRAM */}
@@ -374,16 +431,17 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* INFORMAÇÕES IMPORTANTES */}
+              {/* INFORMAÇÕES IMPORTANTES SOBRE VERIFICAÇÃO */}
               <div className="bg-blue-900 border border-blue-600 p-4">
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-400 mt-1">ℹ️</span>
+                  <span className="text-blue-400 mt-1">🛡️</span>
                   <div className="text-blue-200 font-mono text-xs space-y-2">
-                    <p>• <strong>Todos os campos são obrigatórios</strong></p>
-                    <p>• O email não pode ser alterado por segurança</p>
-                    <p>• Link do Rival Regions deve ser do perfil mobile do jogo</p>
-                    <p>• Número do Telegram é usado para contato administrativo</p>
-                    <p>• Você pode compartilhar seu perfil com outros usuários</p>
+                    <p><strong>Sistema de Verificação:</strong></p>
+                    <p>• Complete todos os campos obrigatórios</p>
+                    <p>• Clique em "SOLICITAR VERIFICAÇÃO" após salvar</p>
+                    <p>• Admin verificará seus dados manualmente</p>
+                    <p>• Receba o selo de verificação após aprovação</p>
+                    <p>• Perfis verificados têm mais credibilidade no marketplace</p>
                   </div>
                 </div>
               </div>

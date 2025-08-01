@@ -262,9 +262,13 @@ export default function PublicProfilePage({ params }) {
               {userData?.name ? userData.name.charAt(0).toUpperCase() : '?'}
             </div>
             
-            <h2 className="text-3xl font-bold text-gray-200 font-mono mb-2">
-              {userData?.name || 'Nome não disponível'}
-            </h2>
+            <div className="flex items-center justify-center space-x-3 mb-2">
+              <h2 className="text-3xl font-bold text-gray-200 font-mono">
+                {userData?.name || 'Nome não disponível'}
+              </h2>
+              {/* Badge de Verificação usando hook */}
+              <VerificationBadge userId={userId} />
+            </div>
             
             <div className="flex items-center justify-center space-x-2 text-gray-400 font-mono text-sm mb-4">
               <Calendar className="h-4 w-4" />

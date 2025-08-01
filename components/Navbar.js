@@ -1,4 +1,4 @@
-// components/Navbar.js - REESCRITA COMPLETA
+// components/Navbar.js - ATUALIZADA COM LINK PARA VERIFICAÇÕES
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { LogOut, Menu, X, Plus, Receipt, Settings, Users } from 'lucide-react';
+import { LogOut, Menu, X, Plus, Receipt, Settings, Users, Shield } from 'lucide-react';
 import DepositModal from './DepositModal';
 
 // Formatação de dinheiro
@@ -108,8 +108,16 @@ export default function Navbar() {
                       </Link>
                       
                       <Link
-                        href="/admin/users"
+                        href="/admin/verifications"
                         className="btn bg-blue-600 hover:bg-blue-500 text-white flex items-center space-x-2 font-mono text-sm"
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span>VERIFICAÇÕES</span>
+                      </Link>
+                      
+                      <Link
+                        href="/admin/users"
+                        className="btn bg-orange-600 hover:bg-orange-500 text-white flex items-center space-x-2 font-mono text-sm"
                       >
                         <Users className="h-4 w-4" />
                         <span>USUÁRIOS</span>
@@ -234,9 +242,18 @@ export default function Navbar() {
                         </Link>
 
                         <Link
-                          href="/admin/users"
+                          href="/admin/verifications"
                           onClick={closeMobileMenu}
                           className="w-full btn bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center space-x-3 font-mono"
+                        >
+                          <Shield className="h-5 w-5" />
+                          <span>GERENCIAR VERIFICAÇÕES</span>
+                        </Link>
+
+                        <Link
+                          href="/admin/users"
+                          onClick={closeMobileMenu}
+                          className="w-full btn bg-orange-600 hover:bg-orange-500 text-white flex items-center justify-center space-x-3 font-mono"
                         >
                           <Users className="h-5 w-5" />
                           <span>GERENCIAR USUÁRIOS</span>
