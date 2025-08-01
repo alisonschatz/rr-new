@@ -57,6 +57,37 @@ export default function ProfileVerificationBadge({ userData, size = 'normal' }) 
            userData.telegramNumber.trim().length > 0;
   };
 
+  // Verificar se pode solicitar novamente (perfil rejeitado há mais de 24h)
+  const canRequestAgain = () => {
+    if (!verificationStatus || verificationStatus.status !== 'rejected') return false;
+    
+    // Verificar se passou 24 horas desde a rejeição
+    const rejectedTime = verificationStatus.rejectedAt?.seconds * 1000;
+    const now = Date.now();
+    const timeDiff = now - rejectedTime;
+    const hoursElapsed = timeDiff / (1000 * 60 * 60);
+    
+    return hoursElapsed >= 24; // 24 horas para solicitar novamente
+  };
+
+  // Calcular tempo restante para nova solicitação
+  const getTimeUntilResubmit = () => {
+    if (!verificationStatus || verificationStatus.status !== 'rejected') return '';
+    
+    const rejectedTime = verificationStatus.rejectedAt?.seconds * 1000;
+    const now = Date.now();
+    const timeDiff = now - rejectedTime;
+    const hoursElapsed = timeDiff / (1000 * 60 * 60);
+    const hoursRemaining = Math.max(0, 24 - hoursElapsed);
+    
+    if (hoursRemaining > 1) {
+      return `${Math.ceil(hoursRemaining)} horas`;
+    } else if (hoursRemaining > 0) {
+      return `${Math.ceil(hoursRemaining * 60)} minutos`;
+    }
+    return 'Agora';
+  };
+
   // Solicitar verificação
   const requestVerification = async () => {
     if (!user || !userData || !isProfileComplete()) {
@@ -64,9 +95,18 @@ export default function ProfileVerificationBadge({ userData, size = 'normal' }) 
       return;
     }
 
+    // Verificar se pode solicitar novamente se foi rejeitado
+    if (verificationStatus?.status === 'rejected' && !canRequestAgain()) {
+      toast.error(`AGUARDE ${getTimeUntilResubmit()} PARA SOLICITAR NOVAMENTE`);
+      return;
+    }
+
     setRequesting(true);
 
     try {
+      console.log('🛡️ === INICIANDO VERIFICAÇÃO REAL ===');
+      console.log('🛡️ Criando solicitação de verificação para:', user.uid);
+      
       // Criar solicitação de verificação
       const verificationRequest = {
         userId: user.uid,
@@ -76,29 +116,53 @@ export default function ProfileVerificationBadge({ userData, size = 'normal' }) 
         telegramNumber: userData.telegramNumber,
         status: 'pending',
         requestedAt: serverTimestamp(),
-        type: 'profile_verification'
+        type: 'profile_verification',
+        // Se for uma nova tentativa, marcar como resubmissão
+        isResubmission: verificationStatus?.status === 'rejected' || false,
+        previousRejectionReason: verificationStatus?.rejectionReason || null
       };
+
+      console.log('🛡️ Dados da solicitação:', verificationRequest);
 
       const requestRef = await addDoc(collection(db, 'profile_verifications'), verificationRequest);
 
+      console.log('✅ Solicitação de verificação criada com ID:', requestRef.id);
+      console.log('📱 Tentando enviar notificação para Telegram...');
+
       // Enviar notificação para Telegram
       try {
-        await sendProfileVerificationRequest({
+        const notificationData = {
           userName: userData.name,
           userEmail: userData.email,
           rivalRegionsLink: userData.rivalRegionsLink,
           telegramNumber: userData.telegramNumber,
           userId: user.uid
-        }, requestRef.id);
+        };
         
-        toast.success('SOLICITAÇÃO DE VERIFICAÇÃO ENVIADA! 🛡️');
+        console.log('📱 Dados para notificação:', notificationData);
+        console.log('📱 ID da solicitação:', requestRef.id);
+        
+        const notificationSent = await sendProfileVerificationRequest(notificationData, requestRef.id);
+        
+        console.log('📱 Resultado da notificação:', notificationSent);
+        
+        if (notificationSent) {
+          console.log('✅ Notificação Telegram enviada com sucesso!');
+          toast.success(verificationStatus?.status === 'rejected' ? 
+            'NOVA SOLICITAÇÃO ENVIADA! 🛡️' : 
+            'SOLICITAÇÃO DE VERIFICAÇÃO ENVIADA! 🛡️'
+          );
+        } else {
+          console.log('⚠️ Notificação Telegram não enviada');
+          toast.success('SOLICITAÇÃO DE VERIFICAÇÃO ENVIADA!');
+        }
       } catch (telegramError) {
-        console.warn('Erro ao enviar notificação Telegram:', telegramError);
+        console.warn('❌ Erro na notificação Telegram:', telegramError);
         toast.success('SOLICITAÇÃO DE VERIFICAÇÃO ENVIADA!');
       }
 
     } catch (error) {
-      console.error('Erro ao solicitar verificação:', error);
+      console.error('❌ Erro ao solicitar verificação:', error);
       toast.error('ERRO AO SOLICITAR VERIFICAÇÃO');
     } finally {
       setRequesting(false);
@@ -143,18 +207,37 @@ export default function ProfileVerificationBadge({ userData, size = 'normal' }) 
 
   if (verificationStatus?.status === 'rejected') {
     // VERIFICAÇÃO REJEITADA
-    return (
-      <div className={`inline-flex items-center space-x-1 ${
-        size === 'small' ? 'text-xs' : 'text-sm'
-      } font-mono`}>
-        <AlertCircle className={`${
-          size === 'small' ? 'h-4 w-4' : 'h-5 w-5'
-        } text-red-400`} />
+    return size === 'small' ? (
+      <div className="inline-flex items-center space-x-1 text-xs font-mono">
+        <AlertCircle className="h-4 w-4 text-red-400" />
         <span className="text-red-400 font-bold">REJEITADO</span>
-        {size !== 'small' && verificationStatus.rejectionReason && (
-          <span className="text-red-300 text-xs">
-            ({verificationStatus.rejectionReason})
-          </span>
+      </div>
+    ) : (
+      <div className="space-y-2">
+        <div className="inline-flex items-center space-x-1 text-sm font-mono">
+          <AlertCircle className="h-5 w-5 text-red-400" />
+          <span className="text-red-400 font-bold">REJEITADO</span>
+        </div>
+        
+        {verificationStatus.rejectionReason && (
+          <div className="text-xs text-red-300 font-mono">
+            Motivo: {verificationStatus.rejectionReason}
+          </div>
+        )}
+        
+        {canRequestAgain() ? (
+          <button
+            onClick={requestVerification}
+            disabled={requesting}
+            className="inline-flex items-center space-x-2 bg-orange-600 hover:bg-orange-500 text-white px-3 py-2 font-mono text-xs transition-colors disabled:opacity-50"
+          >
+            <Send className="h-3 w-3" />
+            <span>{requesting ? 'ENVIANDO...' : 'SOLICITAR NOVAMENTE'}</span>
+          </button>
+        ) : (
+          <div className="text-xs text-gray-500 font-mono">
+            Nova solicitação em: {getTimeUntilResubmit()}
+          </div>
         )}
       </div>
     );

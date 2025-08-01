@@ -98,31 +98,13 @@ export default function Navbar() {
                   </Link>
 
                   {isAdmin && (
-                    <>
-                      <Link
-                        href="/admin/deposits"
-                        className="btn bg-purple-600 hover:bg-purple-500 text-white flex items-center space-x-2 font-mono text-sm"
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span>DEPÓSITOS</span>
-                      </Link>
-                      
-                      <Link
-                        href="/admin/verifications"
-                        className="btn bg-blue-600 hover:bg-blue-500 text-white flex items-center space-x-2 font-mono text-sm"
-                      >
-                        <Shield className="h-4 w-4" />
-                        <span>VERIFICAÇÕES</span>
-                      </Link>
-                      
-                      <Link
-                        href="/admin/users"
-                        className="btn bg-orange-600 hover:bg-orange-500 text-white flex items-center space-x-2 font-mono text-sm"
-                      >
-                        <Users className="h-4 w-4" />
-                        <span>USUÁRIOS</span>
-                      </Link>
-                    </>
+                    <Link
+                      href="/admin"
+                      className="btn bg-red-600 hover:bg-red-500 text-white flex items-center space-x-2 font-mono text-sm"
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span>ADMIN</span>
+                    </Link>
                   )}
 
                   <button
@@ -231,34 +213,14 @@ export default function Navbar() {
                     </Link>
 
                     {isAdmin && (
-                      <>
-                        <Link
-                          href="/admin/deposits"
-                          onClick={closeMobileMenu}
-                          className="w-full btn bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center space-x-3 font-mono"
-                        >
-                          <Settings className="h-5 w-5" />
-                          <span>GERENCIAR DEPÓSITOS</span>
-                        </Link>
-
-                        <Link
-                          href="/admin/verifications"
-                          onClick={closeMobileMenu}
-                          className="w-full btn bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center space-x-3 font-mono"
-                        >
-                          <Shield className="h-5 w-5" />
-                          <span>GERENCIAR VERIFICAÇÕES</span>
-                        </Link>
-
-                        <Link
-                          href="/admin/users"
-                          onClick={closeMobileMenu}
-                          className="w-full btn bg-orange-600 hover:bg-orange-500 text-white flex items-center justify-center space-x-3 font-mono"
-                        >
-                          <Users className="h-5 w-5" />
-                          <span>GERENCIAR USUÁRIOS</span>
-                        </Link>
-                      </>
+                      <Link
+                        href="/admin"
+                        onClick={closeMobileMenu}
+                        className="w-full btn bg-red-600 hover:bg-red-500 text-white flex items-center justify-center space-x-3 font-mono"
+                      >
+                        <Settings className="h-5 w-5" />
+                        <span>PAINEL ADMINISTRATIVO</span>
+                      </Link>
                     )}
 
                     <button
