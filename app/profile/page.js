@@ -40,21 +40,19 @@ export default function ProfilePage() {
   };
 
   const validateRivalRegionsLink = (link) => {
-    if (!link) return true; // Campo opcional
+    if (!link) return false; // Campo obrigatório agora
     
-    // Aceitar diferentes formatos de URL do Rival Regions
+    // Padrão específico do Rival Regions mobile
     const patterns = [
-      /^https?:\/\/(www\.)?rivalregions\.com\/.*$/,
-      /^https?:\/\/rivalregions\.com\/.*$/,
-      /^rivalregions\.com\/.*$/,
-      /^www\.rivalregions\.com\/.*$/
+      /^https?:\/\/m\.rivalregions\.com\/#slide\/profile\/\d+$/,
+      /^m\.rivalregions\.com\/#slide\/profile\/\d+$/
     ];
     
     return patterns.some(pattern => pattern.test(link.toLowerCase()));
   };
 
   const validateTelegramNumber = (number) => {
-    if (!number) return true; // Campo opcional
+    if (!number) return false; // Campo obrigatório agora
     
     // Formato: +55 11 99999-9999 ou similar
     const cleanNumber = number.replace(/\D/g, '');
@@ -104,12 +102,22 @@ export default function ProfilePage() {
       return;
     }
 
-    if (formData.rivalRegionsLink && !validateRivalRegionsLink(formData.rivalRegionsLink)) {
-      toast.error('LINK DO RIVAL REGIONS INVÁLIDO');
+    if (!formData.rivalRegionsLink.trim()) {
+      toast.error('LINK DO RIVAL REGIONS É OBRIGATÓRIO');
       return;
     }
 
-    if (formData.telegramNumber && !validateTelegramNumber(formData.telegramNumber)) {
+    if (!validateRivalRegionsLink(formData.rivalRegionsLink)) {
+      toast.error('LINK DO RIVAL REGIONS INVÁLIDO - Use o formato: https://m.rivalregions.com/#slide/profile/SEU_ID');
+      return;
+    }
+
+    if (!formData.telegramNumber.trim()) {
+      toast.error('NÚMERO DO TELEGRAM É OBRIGATÓRIO');
+      return;
+    }
+
+    if (!validateTelegramNumber(formData.telegramNumber)) {
       toast.error('NÚMERO DO TELEGRAM INVÁLIDO');
       return;
     }
@@ -122,17 +130,10 @@ export default function ProfilePage() {
       // Preparar dados para atualização
       const updateData = {
         name: formData.name.trim(),
-        rivalRegionsLink: formData.rivalRegionsLink.trim() || null,
-        telegramNumber: formData.telegramNumber.trim() || null,
+        rivalRegionsLink: formData.rivalRegionsLink.trim(),
+        telegramNumber: formData.telegramNumber.trim(),
         lastProfileUpdate: new Date()
       };
-
-      // Remover campos vazios
-      Object.keys(updateData).forEach(key => {
-        if (updateData[key] === null || updateData[key] === '') {
-          delete updateData[key];
-        }
-      });
 
       await updateDoc(userRef, updateData);
 
@@ -156,6 +157,35 @@ export default function ProfilePage() {
     return link;
   };
 
+  const handleShareProfile = async () => {
+    const profileUrl = `${window.location.origin}/user/${user?.uid}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Perfil de ${userData?.name || 'Usuário'} - RR Exchange`,
+          text: `Confira o perfil de ${userData?.name || 'Usuário'} no RR Exchange`,
+          url: profileUrl
+        });
+        toast.success('PERFIL COMPARTILHADO!');
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          fallbackShare(profileUrl);
+        }
+      }
+    } else {
+      fallbackShare(profileUrl);
+    }
+  };
+
+  const fallbackShare = (url) => {
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success('LINK DO PERFIL COPIADO!');
+    }).catch(() => {
+      toast.error('ERRO AO COPIAR LINK');
+    });
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen">
@@ -166,22 +196,33 @@ export default function ProfilePage() {
           {/* CABEÇALHO */}
           <div className="mb-6 sm:mb-8">
             <div className="card">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <Link href="/dashboard" className="btn btn-secondary font-mono text-xs sm:text-sm">
-                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  VOLTAR
-                </Link>
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <User className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
-                  <div>
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono">
-                      MEU PERFIL
-                    </h1>
-                    <p className="text-gray-400 font-mono text-xs sm:text-sm">
-                      Editar informações pessoais
-                    </p>
+              <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <Link href="/dashboard" className="btn btn-secondary font-mono text-xs sm:text-sm">
+                    <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    VOLTAR
+                  </Link>
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <User className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
+                    <div>
+                      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200 font-mono">
+                        MEU PERFIL
+                      </h1>
+                      <p className="text-gray-400 font-mono text-xs sm:text-sm">
+                        Editar informações pessoais
+                      </p>
+                    </div>
                   </div>
                 </div>
+                
+                {/* BOTÃO COMPARTILHAR PERFIL */}
+                <button
+                  onClick={handleShareProfile}
+                  className="btn bg-purple-600 hover:bg-purple-500 text-white flex items-center space-x-2 font-mono text-sm"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>COMPARTILHAR PERFIL</span>
+                </button>
               </div>
             </div>
           </div>
@@ -246,7 +287,7 @@ export default function ProfilePage() {
               <div>
                 <label className="block text-sm font-bold text-gray-300 mb-2 font-mono tracking-wider">
                   <GamepadIcon className="h-4 w-4 inline mr-2" />
-                  LINK DO PERFIL NO RIVAL REGIONS
+                  LINK DO PERFIL NO RIVAL REGIONS *
                 </label>
                 <input
                   type="url"
@@ -254,13 +295,15 @@ export default function ProfilePage() {
                   value={formData.rivalRegionsLink}
                   onChange={handleInputChange}
                   className="input font-mono"
-                  placeholder="https://rivalregions.com/profile/123456"
+                  placeholder="https://m.rivalregions.com/#slide/profile/2001258303"
+                  required
                   disabled={loading}
                 />
                 <div className="text-xs text-gray-500 font-mono mt-1 space-y-1">
-                  <p>• Exemplo: https://rivalregions.com/profile/123456</p>
-                  <p>• Link do seu perfil público no jogo Rival Regions</p>
-                  <p>• Campo opcional</p>
+                  <p>• <strong>Formato obrigatório:</strong> https://m.rivalregions.com/#slide/profile/SEU_ID</p>
+                  <p>• Exemplo: https://m.rivalregions.com/#slide/profile/2001258303</p>
+                  <p>• Acesse seu perfil no jogo pelo celular e copie a URL</p>
+                  <p>• <strong>CAMPO OBRIGATÓRIO</strong></p>
                 </div>
                 
                 {/* PREVIEW DO LINK */}
@@ -275,7 +318,7 @@ export default function ProfilePage() {
                         rel="noopener noreferrer"
                         className="underline hover:text-green-100"
                       >
-                        Ver perfil
+                        Ver perfil no jogo
                       </a>
                     </div>
                   </div>
@@ -284,7 +327,7 @@ export default function ProfilePage() {
                 {formData.rivalRegionsLink && !validateRivalRegionsLink(formData.rivalRegionsLink) && (
                   <div className="mt-2 p-2 bg-red-900 border border-red-600">
                     <div className="text-red-200 text-xs font-mono">
-                      ❌ Link inválido - deve ser do domínio rivalregions.com
+                      ❌ Link inválido - use o formato: https://m.rivalregions.com/#slide/profile/SEU_ID
                     </div>
                   </div>
                 )}
@@ -294,7 +337,7 @@ export default function ProfilePage() {
               <div>
                 <label className="block text-sm font-bold text-gray-300 mb-2 font-mono tracking-wider">
                   <MessageCircle className="h-4 w-4 inline mr-2" />
-                  NÚMERO DO TELEGRAM
+                  NÚMERO DO TELEGRAM *
                 </label>
                 <input
                   type="tel"
@@ -303,13 +346,14 @@ export default function ProfilePage() {
                   onChange={handleTelegramChange}
                   className="input font-mono"
                   placeholder="+55 (11) 99999-9999"
+                  required
                   disabled={loading}
                   maxLength={20}
                 />
                 <div className="text-xs text-gray-500 font-mono mt-1 space-y-1">
-                  <p>• Formato: +55 (11) 99999-9999</p>
+                  <p>• <strong>Formato:</strong> +55 (11) 99999-9999</p>
                   <p>• Será usado para contato em caso de necessidade</p>
-                  <p>• Campo opcional</p>
+                  <p>• <strong>CAMPO OBRIGATÓRIO</strong></p>
                 </div>
                 
                 {/* VALIDAÇÃO DO TELEGRAM */}
@@ -335,10 +379,11 @@ export default function ProfilePage() {
                 <div className="flex items-start space-x-2">
                   <span className="text-blue-400 mt-1">ℹ️</span>
                   <div className="text-blue-200 font-mono text-xs space-y-2">
-                    <p>• Apenas você pode editar estas informações</p>
+                    <p>• <strong>Todos os campos são obrigatórios</strong></p>
                     <p>• O email não pode ser alterado por segurança</p>
-                    <p>• Link do Rival Regions e Telegram são opcionais</p>
-                    <p>• Informações usadas para melhor comunicação</p>
+                    <p>• Link do Rival Regions deve ser do perfil mobile do jogo</p>
+                    <p>• Número do Telegram é usado para contato administrativo</p>
+                    <p>• Você pode compartilhar seu perfil com outros usuários</p>
                   </div>
                 </div>
               </div>
@@ -353,7 +398,7 @@ export default function ProfilePage() {
                 </Link>
                 <button
                   type="submit"
-                  disabled={loading || !formData.name.trim()}
+                  disabled={loading || !formData.name.trim() || !formData.rivalRegionsLink.trim() || !formData.telegramNumber.trim()}
                   className="flex-1 btn btn-success font-mono tracking-wider flex items-center justify-center space-x-2"
                 >
                   <Save className="h-4 w-4" />

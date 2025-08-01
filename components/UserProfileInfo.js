@@ -113,14 +113,15 @@ export default function UserProfileInfo({ userData, showEmail = false, compact =
           </div>
         )}
 
-        {/* SEM INFORMAÇÕES ADICIONAIS */}
-        {!userData.telegramNumber && !userData.rivalRegionsLink && (
-          <div className="text-center py-4">
-            <div className="text-gray-500 font-mono text-sm">
-              📝 Nenhuma informação adicional cadastrada
+        {/* SEM INFORMAÇÕES OBRIGATÓRIAS */}
+        {(!userData.telegramNumber || !userData.rivalRegionsLink) && (
+          <div className="text-center py-4 bg-red-900 border border-red-600">
+            <div className="text-red-200 font-mono text-sm">
+              ⚠️ Perfil incompleto - campos obrigatórios não preenchidos
             </div>
-            <div className="text-xs text-gray-600 font-mono mt-1">
-              Clique em "Editar Perfil" para adicionar mais informações
+            <div className="text-xs text-red-300 font-mono mt-1">
+              {!userData.rivalRegionsLink && "• Link do Rival Regions é obrigatório"}
+              {!userData.telegramNumber && "• Número do Telegram é obrigatório"}
             </div>
           </div>
         )}

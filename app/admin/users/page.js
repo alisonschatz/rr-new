@@ -344,10 +344,14 @@ export default function AdminUsersPage() {
                           </td>
                           <td className="px-4 py-3">
                             <div className="space-y-1">
-                              {userItem.telegramNumber && (
+                              {userItem.telegramNumber ? (
                                 <div className="text-xs text-gray-200 font-mono flex items-center space-x-1">
                                   <span>📱</span>
                                   <span>{userItem.telegramNumber}</span>
+                                </div>
+                              ) : (
+                                <div className="text-xs text-red-400 font-mono">
+                                  ❌ Telegram não informado
                                 </div>
                               )}
                               <div className="text-xs text-gray-400 font-mono">
@@ -356,6 +360,11 @@ export default function AdminUsersPage() {
                                   : 'N/A'
                                 }
                               </div>
+                              {(!userItem.telegramNumber || !userItem.rivalRegionsLink) && (
+                                <div className="text-xs text-yellow-400 font-mono">
+                                  ⚠️ Perfil incompleto
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="px-4 py-3">
